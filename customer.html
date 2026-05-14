@@ -511,7 +511,7 @@ async function submitQuote(){
         total+=price*qty;
         items.push({product_id:parseInt(id),qty,price});
     });
-    const quote={client_name:cn,client_phone:cp,items,total_amount:total,total_cost:0,discount:100,pricing_tier:'A',coupon_code:null,status:'pending',source:'customer'};
+    const quote={client_name:cn,client_phone:cp,items,total_amount:total,total_cost:0,discount:100,pricing_tier:'A',status:'pending',source:'customer'};
     try{
         const{data,error}=await db.from('quotes').insert([quote]).select();
         if(error)throw new Error(`提交失败:${error.message}`);
