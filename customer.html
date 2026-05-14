@@ -221,7 +221,12 @@
             <span class="label">合计</span>
             <span class="amount" id="totalAmount">¥0.00</span>
         </div>
-        <button class="btn-green" id="btnExport"><i class="fas fa-image"></i> 生成清单截图</button>
+        <div style="display:flex;gap:8px;margin-bottom:8px;">
+            <input type="text" id="custName" placeholder="您的姓名" style="flex:1;padding:8px 10px;border:1px solid #e5e7eb;border-radius:6px;font-size:13px;outline:none;">
+            <input type="tel" id="custPhone" placeholder="联系电话" style="flex:1;padding:8px 10px;border:1px solid #e5e7eb;border-radius:6px;font-size:13px;outline:none;">
+        </div>
+        <button class="btn-green" id="btnSubmit"><i class="fas fa-paper-plane"></i> 提交给老板</button>
+        <button class="btn-outline" id="btnExport"><i class="fas fa-image"></i> 生成清单截图</button>
         <button class="btn-outline" id="btnClear"><i class="fas fa-trash"></i> 清空清单</button>
     </div>
 </div>
@@ -490,6 +495,36 @@ async function exportImage(){
     }catch(e){toast('生成失败:'+e.message,'error');}
 }
 
+async function submitQuote(){
+    const cn=document.getElementById('custName').value.trim();
+    const cp=document.getElementById('custPhone').value.trim();
+    const ids=Object.keys(S.qi);
+    if(ids.length===0){toast('清单为空，无法提交','warning');return;}
+    if(!cn){toast('请填写您的姓名','warning');return;}
+    if(!cp){toast('请填写联系电话','warning');return;}
+    let total=0;const items=[];
+    ids.forEach(id=>{
+        const p=S.all.find(pp=>pp.id==id);
+        if(!p)return;
+        const price=getPrice(p);
+        const qty=S.qi[id];
+        total+=price*qty;
+        items.push({product_id:parseInt(id),qty,price});
+    });
+    const quote={client_name:cn,client_phone:cp,items,total_amount:total,total_cost:0,discount:100,pricing_tier:'A',coupon_code:null,status:'pending',source:'customer'};
+    try{
+        const{data,error}=await db.from('quotes').insert([quote]).select();
+        if(error)throw new Error(`提交失败:${error.message}`);
+        toast('已提交给老板，请等待回复','success');
+        S.qi={};
+        document.getElementById('custName').value='';
+        document.getElementById('custPhone').value='';
+        renderGrid();
+        updBadge();
+        renderDrawer();
+    }catch(e){console.error('提交失败:',e);toast(e.message,'error');}
+}
+
 async function loadProd(){
     if(CM.load()){
         S.all=CM.get();
@@ -536,6 +571,7 @@ function bindEvents(){
     document.getElementById('cartBtn').addEventListener('click',()=>{document.getElementById('drawer').classList.add('open');document.getElementById('drawerOverlay').classList.add('show');});
     document.getElementById('closeDrawer').addEventListener('click',()=>{document.getElementById('drawer').classList.remove('open');document.getElementById('drawerOverlay').classList.remove('show');});
     document.getElementById('drawerOverlay').addEventListener('click',()=>{document.getElementById('drawer').classList.remove('open');document.getElementById('drawerOverlay').classList.remove('show');});
+    document.getElementById('btnSubmit').addEventListener('click',submitQuote);
     document.getElementById('btnExport').addEventListener('click',exportImage);
     document.getElementById('btnClear').addEventListener('click',clearQ);
     document.getElementById('mobileMenuBtn').addEventListener('click',()=>{document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebarOverlay').classList.toggle('show');});
