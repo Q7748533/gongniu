@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>公牛开关插座专业报价系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --brand-green: #00A651; --brand-dark: #008c44; --brand-light: #e6f7ef; --sidebar-w: 240px; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif; background: #f3f4f6; height: 100vh; overflow: hidden; }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 2px; }
+
+        .top-bar { position: fixed; top: 0; left: 0; right: 0; height: 48px; background: white; border-bottom: 1px solid #e5e7eb; display: flex; align-items: center; padding: 0 16px; gap: 12px; z-index: 100; }
+        .logo { font-weight: 700; color: var(--brand-green); font-size: 14px; display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+        .search-input { flex: 1; max-width: 320px; padding: 6px 12px 6px 32px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 13px; outline: none; background: #f9fafb; }
+        .search-input:focus { border-color: var(--brand-green); background: white; }
+        .top-actions { display: flex; gap: 6px; margin-left: auto; }
+        .btn { padding: 5px 10px; border-radius: 6px; font-size: 12px; cursor: pointer; border: 1px solid #e5e7eb; background: white; color: #6b7280; display: flex; align-items: center; gap: 4px; white-space: nowrap; }
+        .btn:hover { background: #f3f4f6; }
+        .btn-green { background: var(--brand-green); color: white; border-color: var(--brand-green); }
+        .btn-green:hover { background: var(--brand-dark); }
+
+        .layout { display: flex; height: calc(100vh - 48px); margin-top: 48px; }
+
+        .sidebar { width: var(--sidebar-w); background: white; border-right: 1px solid #e5e7eb; display: flex; flex-direction: column; flex-shrink: 0; }
+        .sidebar-head { padding: 10px 12px; border-bottom: 1px solid #f3f4f6; display: flex; justify-content: space-between; align-items: center; }
+        .sidebar-head span { font-size: 12px; font-weight: 600; color: #374151; }
+        .sidebar-body { flex: 1; overflow-y: auto; padding: 6px; }
+
+        .series-row { margin-bottom: 2px; }
+        .series-btn { width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; color: #374151; background: none; border: none; transition: background 0.15s; }
+        .series-btn:hover { background: #f9fafb; }
+        .series-btn.open { background: var(--brand-light); color: var(--brand-green); }
+        .series-btn .arrow { font-size: 10px; transition: transform 0.2s; }
+        .series-btn.open .arrow { transform: rotate(90deg); }
+        .series-btn .cnt { font-size: 11px; color: #9ca3af; background: #f3f4f6; padding: 1px 6px; border-radius: 8px; font-weight: 400; }
+        .series-btn.open .cnt { background: white; color: var(--brand-green); }
+
+        .colors-panel { display: none; padding: 2px 0 2px 16px; }
+        .colors-panel.open { display: block; }
+        .color-btn { width: 100%; display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 5px; cursor: pointer; font-size: 12px; color: #6b7280; background: none; border: none; transition: all 0.15s; }
+        .color-btn:hover { background: #f9fafb; color: #374151; }
+        .color-btn.open { background: var(--brand-green); color: white; }
+        .color-dot { width: 10px; height: 10px; border-radius: 50%; border: 1px solid #e5e7eb; flex-shrink: 0; }
+        .color-btn.open .color-dot { border-color: rgba(255,255,255,0.5); }
+        .color-btn .cnt { margin-left: auto; font-size: 11px; opacity: 0.6; }
+
+        .models-panel { display: none; padding: 2px 0 2px 24px; }
+        .models-panel.open { display: block; }
+        .model-btn { width: 100%; text-align: left; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 11px; color: #4b5563; background: none; border: none; transition: all 0.15s; }
+        .model-btn:hover { background: #f3f4f6; color: #1f2937; }
+        .model-btn.open { background: var(--brand-green); color: white; }
+        .model-btn .cnt { float: right; font-size: 10px; opacity: 0.6; }
+
+        .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .main-head { padding: 8px 16px; background: white; border-bottom: 1px solid #e5e7eb; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+        .path { font-size: 12px; color: #9ca3af; display: flex; align-items: center; gap: 4px; }
+        .path b { color: #374151; font-weight: 600; }
+        .path a { color: #6b7280; cursor: pointer; }
+        .path a:hover { color: var(--brand-green); }
+        .cnt-label { font-size: 11px; color: #9ca3af; }
+
+        .mobile-filter-bar { display: none; padding: 6px 12px; background: white; border-bottom: 1px solid #e5e7eb; overflow-x: auto; white-space: nowrap; -webkit-overflow-scrolling: touch; }
+        .mobile-filter-bar.show { display: flex; gap: 6px; }
+        .mobile-filter-bar::-webkit-scrollbar { display: none; }
+        .mfc { padding: 5px 12px; border-radius: 16px; font-size: 12px; cursor: pointer; border: 1px solid #e5e7eb; background: white; color: #374151; flex-shrink: 0; user-select: none; }
+        .mfc.active { background: var(--brand-green); color: white; border-color: var(--brand-green); }
+        .mfc .mfc-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 4px; vertical-align: middle; border: 1px solid #d1d5db; }
+        .mfc.active .mfc-dot { border-color: rgba(255,255,255,0.5); }
+
+        .grid { flex: 1; overflow-y: auto; padding: 14px; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; align-content: start; }
+
+        .card { background: white; border-radius: 8px; padding: 12px; cursor: pointer; border: 2px solid transparent; transition: all 0.2s; position: relative; }
+        .card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); transform: translateY(-1px); }
+        .card.in { border-color: var(--brand-green); background: var(--brand-light); }
+        .card-name { font-size: 13px; font-weight: 600; color: #1f2937; margin-bottom: 8px; }
+        .card-prices { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; margin-bottom: 8px; }
+        .cp { text-align: center; padding: 4px 2px; border-radius: 4px; }
+        .cp-l { font-size: 9px; color: #9ca3af; }
+        .cp-v { font-size: 11px; font-weight: 700; }
+        .cp.c .cp-v { color: #ef4444; }
+        .cp.c { background: #fef2f2; }
+        .cp.s .cp-v { color: #10b981; }
+        .cp.s { background: #f0fdf4; }
+        .cp.p .cp-v { color: #3b82f6; }
+        .cp.p { background: #eff6ff; }
+        .card-foot { display: flex; justify-content: space-between; align-items: center; }
+        .card-badge { font-size: 10px; color: var(--brand-green); font-weight: 600; }
+        .add { width: 28px; height: 28px; border-radius: 50%; background: var(--brand-green); color: white; border: none; cursor: pointer; font-size: 14px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+        .add:hover { background: var(--brand-dark); }
+        .add.in { background: #10b981; font-size: 12px; }
+
+        .empty { grid-column: 1/-1; text-align: center; padding: 40px; color: #9ca3af; }
+        .empty i { font-size: 36px; margin-bottom: 8px; display: block; }
+
+        .drawer { position: fixed; right: 0; top: 48px; bottom: 0; width: 360px; background: white; box-shadow: -4px 0 16px rgba(0,0,0,0.08); display: flex; flex-direction: column; z-index: 90; transform: translateX(100%); transition: transform 0.3s; }
+        .drawer.open { transform: translateX(0); }
+        .d-head { padding: 12px 16px; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; }
+        .d-title { font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
+        .d-badge { background: var(--brand-green); color: white; padding: 1px 8px; border-radius: 8px; font-size: 11px; }
+        .d-body { flex: 1; overflow-y: auto; padding: 12px 16px; }
+        .d-foot { padding: 12px 16px; border-top: 1px solid #e5e7eb; background: #fafafa; }
+        .d-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 8px; }
+        .d-inputs input { padding: 6px 8px; border: 1px solid #e5e7eb; border-radius: 5px; font-size: 12px; outline: none; }
+        .d-inputs input:focus { border-color: var(--brand-green); }
+        .d-coupon { display: flex; gap: 4px; margin-bottom: 6px; }
+        .d-coupon input { flex: 1; padding: 6px 8px; border: 1px solid #e5e7eb; border-radius: 5px; font-size: 12px; outline: none; }
+        .d-coupon button { padding: 6px 10px; background: #f97316; color: white; border: none; border-radius: 5px; font-size: 11px; cursor: pointer; }
+        .d-tier { width: 100%; padding: 6px 8px; border: 1px solid #e5e7eb; border-radius: 5px; font-size: 12px; margin-bottom: 8px; outline: none; }
+        .qi { display: flex; align-items: center; gap: 6px; padding: 6px; background: #f9fafb; border-radius: 5px; margin-bottom: 4px; }
+        .qi-n { flex: 1; font-size: 11px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .qi-p { font-size: 10px; color: #6b7280; }
+        .qi-q { display: flex; align-items: center; gap: 3px; }
+        .qi-b { width: 20px; height: 20px; border-radius: 4px; border: 1px solid #e5e7eb; background: white; cursor: pointer; font-size: 10px; display: flex; align-items: center; justify-content: center; }
+        .qi-v { font-size: 11px; font-weight: 600; min-width: 16px; text-align: center; }
+        .qi-input { width: 40px; padding: 2px 4px; border: 1px solid #e5e7eb; border-radius: 3px; font-size: 11px; font-weight: 600; text-align: center; outline: none; background: white; }
+        .qi-input:focus { border-color: var(--brand-green); }
+        .qi-x { color: #d1d5db; cursor: pointer; font-size: 12px; }
+        .qi-x:hover { color: #ef4444; }
+
+        .ctx-menu { position: fixed; background: white; border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.15); z-index: 200; min-width: 160px; padding: 4px 0; display: none; }
+        .ctx-menu.show { display: block; }
+        .ctx-item { padding: 8px 16px; font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 8px; color: #374151; }
+        .ctx-item:hover { background: #f3f4f6; }
+        .ctx-item.danger { color: #ef4444; }
+        .ctx-item.danger:hover { background: #fef2f2; }
+        .ctx-divider { height: 1px; background: #e5e7eb; margin: 4px 0; }
+
+        .d-sum { font-size: 10px; color: #6b7280; margin-bottom: 8px; }
+        .d-sum-r { display: flex; justify-content: space-between; padding: 1px 0; }
+        .d-total { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .d-total-v { font-size: 20px; font-weight: 700; color: #ef4444; }
+        .d-acts { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+        .d-btn { padding: 8px; border-radius: 5px; font-size: 11px; font-weight: 600; cursor: pointer; border: none; display: flex; align-items: center; justify-content: center; gap: 4px; }
+        .d-btn.s { background: #f3f4f6; color: #374151; }
+        .d-btn.p { background: var(--brand-green); color: white; }
+
+        .ai-box { border-top: 1px solid #e5e7eb; padding: 8px 16px; background: #f8fafc; }
+        .ai-box textarea { width: 100%; padding: 6px 8px; border: 1px solid #e5e7eb; border-radius: 5px; font-size: 11px; resize: none; outline: none; }
+        .ai-box textarea:focus { border-color: var(--brand-green); }
+
+        .fab { position: fixed; bottom: 16px; right: 16px; padding: 8px 16px; border-radius: 16px; background: var(--brand-green); color: white; border: none; cursor: pointer; font-size: 12px; font-weight: 600; box-shadow: 0 4px 12px rgba(0,166,81,0.4); z-index: 80; display: flex; align-items: center; gap: 4px; }
+        .fab:hover { transform: scale(1.05); }
+        .fab-c { background: rgba(255,255,255,0.3); padding: 1px 6px; border-radius: 6px; font-size: 10px; }
+
+        .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 16px; }
+        .modal-bg.h { display: none; }
+        .modal-box { background: white; border-radius: 10px; max-width: 560px; width: 100%; max-height: 80vh; overflow: hidden; }
+        .modal-h { padding: 12px 16px; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; }
+        .modal-b { padding: 16px; overflow-y: auto; max-height: calc(80vh - 100px); }
+        .modal-f { padding: 10px 16px; border-top: 1px solid #e5e7eb; display: flex; justify-content: flex-end; gap: 6px; }
+
+        .toast-c { position: fixed; top: 60px; right: 16px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
+        .toast { padding: 10px 16px; border-radius: 6px; color: white; font-size: 13px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); animation: sIn 0.3s; max-width: 280px; display: flex; align-items: center; gap: 6px; }
+        .toast-ok { background: #10b981; }
+        .toast-err { background: #ef4444; }
+        .toast-warn { background: #f59e0b; }
+        .toast-info { background: #3b82f6; }
+        @keyframes sIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+        .cache-s { position: fixed; bottom: 4px; left: 4px; font-size: 9px; color: #9ca3af; z-index: 100; }
+        .cache-s.syncing { color: #f59e0b; }
+        .cache-s.synced { color: #10b981; }
+        .cache-s.offline { color: #ef4444; }
+
+        .status-badge { display: inline-block; padding: 2px 6px; border-radius: 6px; font-size: 10px; }
+        .status-pending { background: #e5e7eb; color: #374151; }
+        .status-completed { background: #d1fae5; color: #065f46; }
+        .quote-card { border: 1px solid #e5e7eb; border-radius: 6px; padding: 8px; margin-bottom: 6px; cursor: pointer; }
+        .quote-card:hover { border-color: #3b82f6; }
+        .quote-card.sel { border-color: #3b82f6; background: #eff6ff; }
+        .stat-card { background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 8px; padding: 12px; color: white; text-align: center; }
+        .stat-card.g { background: linear-gradient(135deg, #11998e, #38ef7d); }
+        .stat-v { font-size: 20px; font-weight: 700; margin: 2px 0; }
+        .stat-l { font-size: 10px; opacity: 0.9; }
+        .coupon-card { background: linear-gradient(135deg, #ffecd2, #fcb69f); border-radius: 8px; padding: 8px; margin-bottom: 6px; }
+        .coupon-code { font-family: monospace; font-size: 14px; font-weight: bold; color: #92400e; letter-spacing: 2px; }
+
+        @media (max-width: 768px) {
+            :root { --sidebar-w: 0px; }
+            .top-bar { padding: 0 8px; gap: 6px; }
+            .logo { font-size: 12px; }
+            .search-input { max-width: 140px; padding: 5px 8px 5px 28px; font-size: 12px; }
+            .top-actions { gap: 2px; }
+            .btn { padding: 5px 6px; font-size: 11px; }
+            .btn span { display: none; }
+            .sidebar { position: fixed; left: 0; top: 48px; bottom: 0; width: 260px; z-index: 95; transform: translateX(-100%); transition: transform 0.3s; box-shadow: 4px 0 16px rgba(0,0,0,0.1); }
+            .sidebar.open { transform: translateX(0); }
+            .sidebar-overlay { display: none; position: fixed; inset: 0; top: 48px; background: rgba(0,0,0,0.3); z-index: 94; }
+            .sidebar-overlay.show { display: block; }
+            .main { margin-left: 0; }
+            .grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; padding: 8px; }
+            .card { padding: 10px; }
+            .card-name { font-size: 12px; }
+            .cp-v { font-size: 10px; }
+            .cp-l { font-size: 8px; }
+            .drawer { width: 100%; }
+            .fab { bottom: 12px; right: 12px; padding: 10px 14px; font-size: 13px; }
+            .mobile-menu-btn { display: none; }
+            .qi-input { width: 36px; }
+            .model-btn { font-size: 10px; padding: 4px 8px; }
+            .color-btn { font-size: 11px; padding: 5px 8px; }
+            .series-btn { font-size: 12px; padding: 7px 8px; }
+        }
+        @media (max-width: 480px) {
+            .grid { grid-template-columns: repeat(2, 1fr); gap: 6px; padding: 6px; }
+            .card-prices { grid-template-columns: 1fr 1fr 1fr; gap: 2px; }
+            .cp { padding: 3px 1px; }
+            .add { width: 24px; height: 24px; font-size: 12px; }
+            .top-bar { height: 44px; }
+            .layout { height: calc(100vh - 44px); margin-top: 44px; }
+            .drawer { top: 44px; }
+            .fab { top: auto; }
+        }
+    </style>
+</head>
+<body>
+<div id="toastC" class="toast-c"></div>
+<div id="cacheS" class="cache-s synced">已同步</div>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<nav class="top-bar">
+    <button class="btn mobile-menu-btn" id="btnToggleSidebar"><i class="fas fa-bars"></i></button>
+    <div class="logo"><i class="fas fa-bolt"></i>公牛报价</div>
+    <input type="text" class="search-input" id="searchInput" placeholder="搜索产品...">
+    <div class="top-actions">
+        <button class="btn" id="btnViewStats"><i class="fas fa-chart-bar"></i><span>统计</span></button>
+        <button class="btn" id="btnViewCoupons"><i class="fas fa-ticket-alt"></i><span>券</span></button>
+        <button class="btn" id="btnViewHistory"><i class="fas fa-history"></i><span>历史</span></button>
+        <button class="btn" id="btnRefreshCache"><i class="fas fa-sync-alt"></i></button>
+        <button class="btn btn-green" id="btnExportImage"><i class="fas fa-image"></i><span>图片</span></button>
+        <button class="btn btn-green" id="btnExportExcel"><i class="fas fa-file-excel"></i><span>Excel</span></button>
+        <button class="btn btn-green" id="btnExportAnalysis"><i class="fas fa-table"></i><span>分析</span></button>
+    </div>
+</nav>
+
+<div class="layout">
+    <aside class="sidebar">
+        <div class="sidebar-head">
+            <span>产品系列</span>
+            <button class="btn" style="padding:3px 8px;font-size:11px;" id="fabAdd"><i class="fas fa-plus"></i>录入</button>
+        </div>
+        <div class="sidebar-body" id="sidebarList">
+            <div style="padding:20px;text-align:center;color:#9ca3af;"><i class="fas fa-spinner fa-spin" style="font-size:18px;"></i><p style="font-size:11px;margin-top:6px;">加载中...</p></div>
+        </div>
+    </aside>
+    <div class="main">
+        <div class="main-head">
+            <div class="path" id="breadcrumb"><b>全部产品</b></div>
+            <div class="cnt-label" id="productCount"></div>
+        </div>
+        <div class="mobile-filter-bar" id="mobileFilterBar"></div>
+        <div class="grid" id="productGrid"></div>
+    </div>
+</div>
+
+<button class="fab" id="fabQuote"><i class="fas fa-shopping-cart"></i>报价单<span class="fab-c" id="fabCnt">0</span></button>
+
+<aside class="drawer" id="quoteDrawer">
+    <div class="d-head">
+        <div class="d-title"><i class="fas fa-shopping-cart" style="color:#9ca3af;font-size:13px;"></i>报价单<span class="d-badge" id="qCnt">0</span></div>
+        <button style="color:#9ca3af;cursor:pointer;font-size:18px;border:none;background:none;" id="btnCloseDrawer">&times;</button>
+    </div>
+    <div class="d-body">
+        <div class="d-inputs"><input type="text" id="clientName" placeholder="客户姓名"><input type="text" id="clientPhone" placeholder="联系电话"></div>
+        <div class="d-coupon"><input type="text" id="couponCode" placeholder="优惠码"><button id="btnApplyCoupon">应用</button></div>
+        <div id="couponInfo" style="display:none;font-size:10px;color:#f97316;margin-bottom:6px;"></div>
+        <select id="pricingTier" class="d-tier"><option value="A">方案A 标准价</option><option value="B">方案B 合作价</option><option value="C">方案C 大客价</option></select>
+        <div id="quoteList"><div class="empty"><i class="fas fa-cart-plus"></i><p>报价单是空的</p></div></div>
+    </div>
+    <div class="ai-box">
+        <textarea id="aiInput" rows="2" placeholder="例如：客厅5个一开双控，主卧3个五孔..."></textarea>
+        <div id="aiLoading" style="display:none;text-align:center;padding:4px;"><i class="fas fa-spinner fa-spin" style="color:#6366f1;font-size:10px;"></i><span style="font-size:10px;color:#6b7280;margin-left:4px;">AI思考中...</span></div>
+        <button class="w-full mt-2 px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg text-sm font-medium" style="width:100%;margin-top:6px;padding:6px;background:linear-gradient(90deg,#6366f1,#9333ea);color:white;border:none;border-radius:5px;font-size:11px;cursor:pointer;" id="aiBtn"><i class="fas fa-magic"></i> AI智能配单</button>
+    </div>
+    <div class="d-foot">
+        <div class="d-sum">
+            <div class="d-sum-r"><span>原总价:</span><span id="originalTotal">¥0.00</span></div>
+            <div class="d-sum-r"><span>总成本:</span><span style="color:#ef4444;" id="totalCost">¥0.00</span></div>
+            <div class="d-sum-r"><span>折后毛利:</span><span style="color:#10b981;" id="profitInfo">¥0.00 (0.0%)</span></div>
+        </div>
+        <div class="d-total"><span>合计金额</span><span class="d-total-v" id="totalAmount">¥0.00</span></div>
+        <div class="d-acts">
+            <button class="d-btn s" id="btnClearQuote"><i class="fas fa-trash-alt"></i>清空</button>
+            <button class="d-btn p" id="btnSaveQuote"><i class="fas fa-save"></i>保存</button>
+        </div>
+    </div>
+</aside>
+
+<div id="ctxMenu" class="ctx-menu">
+    <div class="ctx-item" id="ctxEditCost"><i class="fas fa-edit"></i>修改成本</div>
+    <div class="ctx-item" id="ctxEditPrice"><i class="fas fa-tag"></i>修改售价</div>
+    <div class="ctx-divider"></div>
+    <div class="ctx-item danger" id="ctxDelete"><i class="fas fa-trash"></i>删除产品</div>
+</div>
+
+<div id="addProductModal" class="modal-bg h">
+    <div class="modal-box" style="max-width:440px;">
+        <div class="modal-h"><h3 style="font-size:14px;font-weight:700;">录入新产品</h3><button style="color:#9ca3af;cursor:pointer;font-size:18px;border:none;background:none;" onclick="closeModal('addProductModal')">&times;</button></div>
+        <div class="modal-b">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+                <div><label style="font-size:11px;color:#374151;display:block;margin-bottom:3px;">系列</label><input type="text" id="p_series" placeholder="如: 幻影" style="width:100%;padding:6px 8px;border:1px solid #e5e7eb;border-radius:5px;font-size:12px;outline:none;"></div>
+                <div><label style="font-size:11px;color:#374151;display:block;margin-bottom:3px;">颜色</label><input type="text" id="p_color" placeholder="如: 远山灰" style="width:100%;padding:6px 8px;border:1px solid #e5e7eb;border-radius:5px;font-size:12px;outline:none;"></div>
+            </div>
+            <div style="margin-bottom:8px;"><label style="font-size:11px;color:#374151;display:block;margin-bottom:3px;">型号名称</label><input type="text" id="p_name" placeholder="如: 一开双控" style="width:100%;padding:6px 8px;border:1px solid #e5e7eb;border-radius:5px;font-size:12px;outline:none;"></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+                <div><label style="font-size:11px;color:#374151;display:block;margin-bottom:3px;">进货成本</label><input type="number" id="p_cost" placeholder="0.00" style="width:100%;padding:6px 8px;border:1px solid #e5e7eb;border-radius:5px;font-size:12px;outline:none;background:#fef2f2;"></div>
+                <div><label style="font-size:11px;color:#374151;display:block;margin-bottom:3px;">标准售价</label><input type="number" id="p_price" placeholder="自动计算" style="width:100%;padding:6px 8px;border:1px solid #e5e7eb;border-radius:5px;font-size:12px;outline:none;background:#f0fdf4;"></div>
+            </div>
+            <p style="font-size:10px;color:#9ca3af;">售价留空将自动按成本加价15%计算</p>
+        </div>
+        <div class="modal-f"><button style="padding:6px 12px;font-size:11px;border:1px solid #e5e7eb;border-radius:5px;cursor:pointer;background:white;" onclick="closeModal('addProductModal')">取消</button><button style="padding:6px 12px;font-size:11px;background:var(--brand-green);color:white;border:none;border-radius:5px;cursor:pointer;" id="btnAddProduct">保存</button></div>
+    </div>
+</div>
+
+<div id="quoteHistoryModal" class="modal-bg h">
+    <div class="modal-box">
+        <div class="modal-h"><div><h3 style="font-size:14px;font-weight:700;">历史报价单</h3><p style="font-size:10px;color:#6b7280;margin-top:2px;">共 <span id="historyCount">0</span> 条</p></div><div style="display:flex;align-items:center;gap:8px;"><select id="quoteStatusFilter" style="font-size:10px;border:1px solid #e5e7eb;border-radius:4px;padding:2px 6px;"><option value="all">全部</option><option value="pending">未成交</option><option value="completed">已成交</option></select><button style="color:#9ca3af;cursor:pointer;font-size:18px;border:none;background:none;" id="btnCloseQuoteHistoryModal">&times;</button></div></div>
+        <div class="modal-b" id="quoteHistoryList"><div style="text-align:center;color:#6b7280;padding:20px;">加载中...</div></div>
+        <div class="modal-f"><button style="padding:5px 10px;font-size:10px;background:#f3f4f6;border:none;border-radius:4px;cursor:pointer;" id="btnRefreshQuotes"><i class="fas fa-sync-alt"></i>刷新</button><button style="padding:5px 10px;font-size:10px;background:#3b82f6;color:white;border:none;border-radius:4px;cursor:pointer;" id="btnLoadSelectedQuote" disabled><i class="fas fa-folder-open"></i>加载选中</button></div>
+    </div>
+</div>
+
+<div id="quoteDetailModal" class="modal-bg h">
+    <div class="modal-box" style="max-width:560px;">
+        <div class="modal-h"><div style="display:flex;align-items:center;gap:8px;"><h3 style="font-size:14px;font-weight:700;">报价单详情</h3><span id="quoteDetailStatusBadge"></span></div><button style="color:#9ca3af;cursor:pointer;font-size:18px;border:none;background:none;" id="btnCloseQuoteDetailModal">&times;</button></div>
+        <div class="modal-b" id="quoteDetailContent"></div>
+        <div class="modal-f"><button style="padding:5px 10px;font-size:10px;background:#f3f4f6;border:none;border-radius:4px;cursor:pointer;" onclick="closeQuoteDetailModal()"><i class="fas fa-arrow-left"></i>返回</button><button style="padding:5px 10px;font-size:10px;background:var(--brand-green);color:white;border:none;border-radius:4px;cursor:pointer;" id="btnToggleStatus">标记为已成交</button><button style="padding:5px 10px;font-size:10px;background:#3b82f6;color:white;border:none;border-radius:4px;cursor:pointer;" id="btnLoadThisQuote"><i class="fas fa-folder-open"></i>加载此报价</button></div>
+    </div>
+</div>
+
+<div id="statsModal" class="modal-bg h">
+    <div class="modal-box" style="max-width:460px;">
+        <div class="modal-h"><h3 style="font-size:14px;font-weight:700;">本月数据统计</h3><button style="color:#9ca3af;cursor:pointer;font-size:18px;border:none;background:none;" id="btnCloseStatsModal">&times;</button></div>
+        <div class="modal-b" id="statsContent"><div style="text-align:center;color:#6b7280;padding:20px;">加载中...</div></div>
+        <div class="modal-f"><button style="padding:5px 10px;font-size:10px;background:#f3f4f6;border:none;border-radius:4px;cursor:pointer;" id="btnRefreshStats"><i class="fas fa-sync-alt"></i>刷新</button></div>
+    </div>
+</div>
+
+<div id="couponModal" class="modal-bg h">
+    <div class="modal-box" style="max-width:440px;">
+        <div class="modal-h"><h3 style="font-size:14px;font-weight:700;">优惠券管理</h3><button style="color:#9ca3af;cursor:pointer;font-size:18px;border:none;background:none;" onclick="closeModal('couponModal')">&times;</button></div>
+        <div class="modal-b">
+            <div style="background:linear-gradient(90deg,#ffedd5,#fef3c7);padding:10px;border-radius:6px;margin-bottom:12px;">
+                <h4 style="font-size:12px;font-weight:700;color:#374151;margin-bottom:6px;">生成新优惠券</h4>
+                <div style="display:flex;gap:6px;"><input type="number" id="couponDiscount" placeholder="折扣 (85=85折)" min="1" max="99" style="flex:1;padding:6px 8px;border:1px solid #fbbf24;border-radius:5px;font-size:12px;"><button style="padding:6px 12px;background:#f97316;color:white;border:none;border-radius:5px;font-size:11px;cursor:pointer;" id="btnGenerateCoupon">生成</button></div>
+            </div>
+            <div id="couponList"><div style="text-align:center;color:#6b7280;padding:12px;">加载中...</div></div>
+        </div>
+        <div class="modal-f"><button style="padding:5px 10px;font-size:10px;background:#f3f4f6;border:none;border-radius:4px;cursor:pointer;" onclick="loadCoupons()"><i class="fas fa-sync-alt"></i>刷新</button></div>
+    </div>
+</div>
+
+<div id="exportArea" style="position:absolute;left:-9999px;top:0;width:800px;background:white;padding:20px;">
+    <div style="text-align:center;margin-bottom:20px;"><h1 style="font-size:24px;font-weight:bold;color:#006400;">公牛开关插座报价单</h1><p style="font-size:14px;color:#666;" id="outSubtitle"></p></div>
+    <table style="width:100%;border-collapse:collapse;font-size:14px;">
+        <thead><tr><td colspan="2" style="padding:12px;border:1px solid #000;">客户: <span id="outClientName"></span></td><td colspan="2" style="padding:12px;border:1px solid #000;">电话: <span id="outClientPhone"></span></td><td colspan="2" style="padding:12px;border:1px solid #000;text-align:right;">日期: <span id="outDate"></span></td></tr><tr style="background:#006400;color:white;"><th style="padding:12px;border:1px solid #000;">序号</th><th style="padding:12px;border:1px solid #000;">系列</th><th style="padding:12px;border:1px solid #000;">颜色</th><th style="padding:12px;border:1px solid #000;">名称</th><th style="padding:12px;border:1px solid #000;">数量</th><th style="padding:12px;border:1px solid #000;">单价</th><th style="padding:12px;border:1px solid #000;">小计</th></tr></thead>
+        <tbody id="outTableBody"></tbody>
+        <tfoot id="outTableFoot"></tfoot>
+    </table>
+</div>
+
+<script>
+const SUPABASE_URL='https://ihekcwhmsbuetvgucyrv.supabase.co';
+const SUPABASE_KEY='sb_publishable_A9tCXTu6-MPrcuJFZiuPRA_l-PY4UsJ';
+const C={TIER:{A:{type:'fixed'},B:{type:'margin',d:0.90},C:{type:'margin',d:0.95}},MARGIN:0.15,CK:'bull_quote_v2',CA:5*60*1000,STATUS:{pending:{l:'未成交',c:'status-pending'},completed:{l:'已成交',c:'status-completed'}}};
+const CM={data:null,ts:null,load(){try{const c=localStorage.getItem(C.CK);if(c){const p=JSON.parse(c);if(Date.now()-p.ts<C.CA){this.data=p.data;this.ts=p.ts;return true;}}}catch(e){}return false;},save(){try{localStorage.setItem(C.CK,JSON.stringify({data:this.data,ts:Date.now()}));this.ts=Date.now();}catch(e){}},get(){return this.data||[];},add(p){if(!this.data)this.data=[];this.data.push(p);this.save();},upd(id,u){if(!this.data)return false;const i=this.data.findIndex(p=>p.id===id);if(i!==-1){this.data[i]={...this.data[i],...u};this.save();return true;}return false;},del(id){if(!this.data)return false;const i=this.data.findIndex(p=>p.id===id);if(i!==-1){this.data.splice(i,1);this.save();return true;}return false;},delS(s){if(!this.data)return 0;const o=this.data.length;this.data=this.data.filter(p=>p.series!==s);const d=o-this.data.length;if(d>0)this.save();return d;},clear(){this.data=null;this.ts=null;localStorage.removeItem(C.CK);},st(s,m){const e=document.getElementById('cacheS');e.className='cache-s '+s;e.textContent=m;}};
+const S={all:[],qi:{},cp:{},gd:100,tier:'A',series:null,color:null,q:'',selQ:null,qh:[],qsf:'all',cvq:null,coupon:null,exp:null,selColor:null,selModel:null};
+const db=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+const cMap={'白色':'#ffffff','黑色':'#1f2937','金色':'#fbbf24','香槟金':'#fde68a','银色':'#9ca3af','灰色':'#6b7280','远山灰':'#78716c'};
+
+function toast(m,t='info',d=3000){const c=document.getElementById('toastC');const e=document.createElement('div');e.className='toast toast-'+(t==='success'?'ok':t==='error'?'err':t==='warning'?'warn':'info');const ic={success:'fa-check-circle',error:'fa-times-circle',warning:'fa-exclamation-triangle',info:'fa-info-circle'};e.innerHTML=`<i class="fas ${ic[t]}"></i><span>${m}</span>`;c.appendChild(e);setTimeout(()=>{e.style.opacity='0';e.style.transform='translateX(100%)';setTimeout(()=>e.remove(),300);},d);}
+function fp(p){return `¥${parseFloat(p||0).toFixed(2)}`;}
+function debounce(fn,w){let t;return function(...a){clearTimeout(t);t=setTimeout(()=>fn(...a),w);};}
+function openModal(id){document.getElementById(id).classList.remove('h');}
+function closeModal(id){document.getElementById(id).classList.add('h');}
+function gcp(p){const tc=C.TIER[S.tier];if(!tc)return parseFloat(p.price);if(tc.type==='fixed')return parseFloat(p.price);if(tc.type==='margin'&&tc.d)return parseFloat((p.cost/tc.d).toFixed(2));return parseFloat(p.price);}
+function fd(ds){const d=ds?new Date(ds):new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
+function fdt(ds){const d=new Date(ds);return `${fd(ds)} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;}
+function sb(s){const c=C.STATUS[s]||C.STATUS.pending;return `<span class="status-badge ${c.c}">${c.l}</span>`;}
+function gcc(){const ch='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let c='BULL';for(let i=0;i<6;i++)c+=ch.charAt(Math.floor(Math.random()*ch.length));return c;}
+function showC(m){return new Promise(r=>{r(confirm(m));});}
+function vStr(v,o={}){const{required=true,minLen=1,maxLen=100,fn='内容'}=o;const t=v?v.trim():'';if(!t&&required)return{v:false,e:`${fn}不能为空`};if(t.length<minLen)return{v:false,e:`${fn}至少${minLen}个字符`};if(t.length>maxLen)return{v:false,e:`${fn}不能超过${maxLen}个字符`};return{v:true,val:t};}
+function vNum(v,o={}){const{required=true,min,max,fn='数值'}=o;if(v===''||v==null||v===undefined){if(required)return{v:false,e:`${fn}不能为空`};return{v:true,val:null};}const n=parseFloat(v);if(isNaN(n))return{v:false,e:`${fn}必须是数字`};if(min!==undefined&&n<min)return{v:false,e:`${fn}不能小于${min}`};if(max!==undefined&&n>max)return{v:false,e:`${fn}不能大于${max}`};return{v:true,val:n};}
+function autoCalc(){const ci=document.getElementById('p_cost'),pi=document.getElementById('p_price');const cv=vNum(ci.value,{required:false,min:0});if(cv.v&&cv.val>0){pi.value=(cv.val/(1-C.MARGIN)).toFixed(2);}else if(!ci.value){pi.value='';}}
+
+async function loadProd(force=false){CM.st('syncing','同步中...');if(!force&&CM.load()){S.all=CM.get();renderSB();renderMFB();renderGrid();CM.st('synced','已同步(缓存)');refreshBG();return;}await loadDB();}
+async function loadDB(){try{CM.st('syncing','从服务器加载...');const{data,error}=await db.from('products').select('*').order('series').order('color').order('created_at');if(error)throw new Error(`查询失败:${error.message}`);S.all=data||[];CM.data=S.all;CM.save();renderSB();renderMFB();renderGrid();CM.st('synced','已同步');}catch(e){console.error('加载失败:',e);CM.st('offline','同步失败');toast('加载失败:'+e.message,'error');}}
+async function refreshBG(){try{const{data,error}=await db.from('products').select('*');if(error)throw error;if(JSON.stringify(data)!==JSON.stringify(CM.data)){CM.data=data||[];CM.save();S.all=CM.get();renderSB();renderMFB();renderGrid();CM.st('synced','已更新');toast('数据已更新','success',1500);}}catch(e){console.error('后台刷新失败:',e);}}
+async function forceRefresh(){const b=document.getElementById('btnRefreshCache');b.classList.add('fa-spin');CM.clear();await loadDB();b.classList.remove('fa-spin');toast('缓存已刷新','success');}
+
+function renderSB(){
+    const sm={};
+    S.all.forEach(p=>{if(!sm[p.series])sm[p.series]={};if(!sm[p.series][p.color])sm[p.series][p.color]=[];sm[p.series][p.color].push(p);});
+    const ct=document.getElementById('sidebarList');
+    let h='';
+    Object.entries(sm).sort((a,b)=>a[0].localeCompare(b[0])).forEach(([series,colors])=>{
+        const total=Object.values(colors).reduce((s,arr)=>s+arr.length,0);
+        const isExp=S.exp===series;
+        h+=`<div class="series-row"><button class="series-btn ${isExp?'open':''}" data-s="${series}"><span>${series} <span class="cnt">${total}</span></span><i class="fas fa-chevron-right arrow"></i></button><div class="colors-panel ${isExp?'open':''}">`;
+        Object.entries(colors).sort((a,b)=>a[0].localeCompare(b[0])).forEach(([color,products])=>{
+            const isActive=S.series===series&&S.color===color;
+            const cc=cMap[color]||'#e5e7eb';
+            const isColorExp=S.selColor===`${series}_${color}`;
+            h+=`<button class="color-btn ${isActive?'open':''}" data-s="${series}" data-c="${color}"><span class="color-dot" style="background:${cc};"></span>${color}<span class="cnt">${products.length}</span></button>`;
+            h+=`<div class="models-panel ${isColorExp?'open':''}">`;
+            products.sort((a,b)=>a.name.localeCompare(b.name)).forEach(p=>{
+                const isModelActive=S.selModel===p.id;
+                h+=`<button class="model-btn ${isModelActive?'open':''}" data-id="${p.id}">${p.name}<span class="cnt">${fp(p.price)}</span></button>`;
+            });
+            h+=`</div>`;
+        });
+        h+=`</div></div>`;
+    });
+    ct.innerHTML=h;
+    ct.querySelectorAll('.series-btn').forEach(btn=>{
+        btn.addEventListener('click',()=>{
+            const s=btn.dataset.s;
+            if(S.exp===s){S.exp=null;S.series=null;S.color=null;S.selColor=null;S.selModel=null;}
+            else{S.exp=s;S.series=s;S.color=null;S.selColor=null;S.selModel=null;}
+            renderSB();renderMFB();renderGrid();updPath();
+            if(window.innerWidth<=768){document.getElementById('sidebar').classList.remove('open');document.getElementById('sidebarOverlay').classList.remove('show');}
+        });
+    });
+    ct.querySelectorAll('.color-btn').forEach(btn=>{
+        btn.addEventListener('click',()=>{
+            const key=`${btn.dataset.s}_${btn.dataset.c}`;
+            S.series=btn.dataset.s;S.color=btn.dataset.c;
+            if(S.selColor===key){S.selColor=null;S.selModel=null;}
+            else{S.selColor=key;S.selModel=null;}
+            renderSB();renderMFB();renderGrid();updPath();
+            if(window.innerWidth<=768){document.getElementById('sidebar').classList.remove('open');document.getElementById('sidebarOverlay').classList.remove('show');}
+        });
+    });
+    ct.querySelectorAll('.model-btn').forEach(btn=>{
+        btn.addEventListener('click',()=>{
+            const id=parseInt(btn.dataset.id);
+            if(S.selModel===id){S.selModel=null;}
+            else{S.selModel=id;}
+            renderSB();renderMFB();renderGrid();updPath();
+            if(window.innerWidth<=768){document.getElementById('sidebar').classList.remove('open');document.getElementById('sidebarOverlay').classList.remove('show');}
+        });
+    });
+}
+
+function renderMFB(){
+    const bar=document.getElementById('mobileFilterBar');
+    if(window.innerWidth>768){bar.classList.remove('show');bar.innerHTML='';return;}
+    if(!S.series){bar.classList.remove('show');bar.innerHTML='';return;}
+    const sm={};
+    S.all.filter(p=>p.series===S.series).forEach(p=>{if(!sm[p.color])sm[p.color]=[];sm[p.color].push(p);});
+    let h=`<div class="mfc ${!S.color?'active':''}" data-c="">全部</div>`;
+    Object.entries(sm).sort((a,b)=>a[0].localeCompare(b[0])).forEach(([color,products])=>{
+        const cc=cMap[color]||'#e5e7eb';
+        const isActive=S.color===color;
+        h+=`<div class="mfc ${isActive?'active':''}" data-c="${color}"><span class="mfc-dot" style="background:${cc};"></span>${color}</div>`;
+    });
+    bar.innerHTML=h;
+    bar.classList.add('show');
+    bar.querySelectorAll('.mfc').forEach(chip=>{
+        chip.addEventListener('click',()=>{
+            const c=chip.dataset.c;
+            S.color=c||null;S.selColor=c?`${S.series}_${c}`:null;S.selModel=null;
+            renderSB();renderMFB();renderGrid();updPath();
+        });
+    });
+}
+
+function updPath(){
+    const bc=document.getElementById('breadcrumb');
+    if(S.selModel){
+        const p=S.all.find(pp=>pp.id===S.selModel);
+        if(p){bc.innerHTML=`<a id="pAll">全部</a> / <a id="pS">${p.series}</a> / <a id="pC">${p.color}</a> / <b>${p.name}</b>`;}
+    } else if(S.series&&S.color){bc.innerHTML=`<a id="pAll">全部</a> / <a id="pS">${S.series}</a> / <b>${S.color}</b>`;}
+    else if(S.series){bc.innerHTML=`<a id="pAll">全部</a> / <b>${S.series}</b>`;}
+    else{bc.innerHTML=`<b>全部产品</b>`;}
+    const pa=document.getElementById('pAll');if(pa)pa.addEventListener('click',()=>{S.exp=null;S.series=null;S.color=null;S.selColor=null;S.selModel=null;renderSB();renderMFB();renderGrid();updPath();});
+    const ps=document.getElementById('pS');if(ps)ps.addEventListener('click',()=>{S.color=null;S.selColor=null;S.selModel=null;renderSB();renderMFB();renderGrid();updPath();});
+    const pc=document.getElementById('pC');if(pc)pc.addEventListener('click',()=>{S.selModel=null;renderSB();renderMFB();renderGrid();updPath();});
+}
+
+function renderGrid(){
+    const g=document.getElementById('productGrid');
+    let ps=S.all;
+    if(S.series&&S.color)ps=ps.filter(p=>p.series===S.series&&p.color===S.color);
+    else if(S.series)ps=ps.filter(p=>p.series===S.series);
+    if(S.selModel)ps=ps.filter(p=>p.id===S.selModel);
+    if(S.q){const q=S.q.toLowerCase();ps=ps.filter(p=>p.name.toLowerCase().includes(q)||p.series.toLowerCase().includes(q)||p.color.toLowerCase().includes(q));}
+    document.getElementById('productCount').textContent=ps.length>0?`共${ps.length}个产品`:'';
+    if(ps.length===0){g.innerHTML=`<div class="empty"><i class="fas fa-box-open"></i><p>${S.q?'没有找到匹配的产品':'暂无产品'}</p></div>`;return;}
+    g.innerHTML=ps.map(p=>{
+        const qty=S.qi[p.id]||0;const price=gcp(p);const profit=price-p.cost;const margin=price>0?((profit/price)*100).toFixed(1):0;
+        return `<div class="card ${qty>0?'in':''}" data-id="${p.id}"><div class="card-name">${p.name}</div><div class="card-prices"><div class="cp c"><div class="cp-l">成本</div><div class="cp-v">${fp(p.cost)}</div></div><div class="cp s"><div class="cp-l">售价</div><div class="cp-v">${fp(price)}</div></div><div class="cp p"><div class="cp-l">利润</div><div class="cp-v">${margin}%</div></div></div><div class="card-foot">${qty>0?`<span class="card-badge">已选${qty}个</span>`:'<span></span>'}<button class="add ${qty>0?'in':''}" data-id="${p.id}">${qty>0?qty:'+'}</button></div></div>`;
+    }).join('');
+    g.querySelectorAll('.card').forEach(c=>{
+        let pressTimer;
+        const id=parseInt(c.dataset.id);
+        c.addEventListener('click',e=>{if(!e.target.closest('.add'))addQ(id);});
+        c.addEventListener('mousedown',e=>{if(e.button===2||e.button===0){pressTimer=setTimeout(()=>showCtx(e,id),500);}});
+        c.addEventListener('touchstart',e=>{pressTimer=setTimeout(()=>showCtx(e.touches[0],id),500);},{passive:true});
+        c.addEventListener('mouseup',()=>clearTimeout(pressTimer));
+        c.addEventListener('touchend',()=>clearTimeout(pressTimer));
+        c.addEventListener('touchmove',()=>clearTimeout(pressTimer));
+        c.addEventListener('contextmenu',e=>{e.preventDefault();showCtx(e,id);});
+    });
+    g.querySelectorAll('.add').forEach(b=>{b.addEventListener('click',e=>{e.stopPropagation();addQ(parseInt(b.dataset.id));});});
+}
+
+let ctxTargetId=null;
+function showCtx(e,id){
+    ctxTargetId=id;
+    const menu=document.getElementById('ctxMenu');
+    const x=e.clientX||e.pageX;
+    const y=e.clientY||e.pageY;
+    menu.style.left=Math.min(x,window.innerWidth-170)+'px';
+    menu.style.top=Math.min(y,window.innerHeight-150)+'px';
+    menu.classList.add('show');
+}
+function hideCtx(){document.getElementById('ctxMenu').classList.remove('show');ctxTargetId=null;}
+
+async function ctxEditCost(){
+    if(!ctxTargetId)return;
+    const p=S.all.find(pp=>pp.id===ctxTargetId);if(!p)return;
+    const nv=prompt(`修改【${p.name}】的成本：`,p.cost);if(nv===null)return;
+    const v=vNum(nv,{fn:'成本',min:0});if(!v.v){toast(v.e,'warning');return;}
+    await editProdPrice(ctxTargetId,'cost',p.cost);hideCtx();
+}
+async function ctxEditPrice(){
+    if(!ctxTargetId)return;
+    const p=S.all.find(pp=>pp.id===ctxTargetId);if(!p)return;
+    const nv=prompt(`修改【${p.name}】的售价：`,p.price);if(nv===null)return;
+    const v=vNum(nv,{fn:'售价',min:0});if(!v.v){toast(v.e,'warning');return;}
+    await editProdPrice(ctxTargetId,'price',p.price);hideCtx();
+}
+async function ctxDelete(){
+    if(!ctxTargetId)return;
+    const p=S.all.find(pp=>pp.id===ctxTargetId);if(!p)return;
+    await delProd(ctxTargetId,p.name);hideCtx();
+}
+
+function addQ(id){if(!S.qi[id])S.qi[id]=0;S.qi[id]+=1;renderGrid();renderQL();updFC();toast('已添加','success',1500);}
+function updQ(id,ch){if(!S.qi[id])return;const n=S.qi[id]+ch;if(n<=0){delete S.qi[id];delete S.cp[id];}else{S.qi[id]=n;}renderGrid();renderQL();updFC();}
+function setQty(id,v){const n=parseInt(v);if(isNaN(n)||n<1){toast('数量必须大于0','warning');renderQL();return;}S.qi[id]=n;renderGrid();renderQL();updFC();}
+function delQ(id){delete S.qi[id];delete S.cp[id];renderGrid();renderQL();updFC();}
+function clearQ(){if(Object.keys(S.qi).length===0){toast('报价单已经是空的','info');return;}showC('确定清空报价单？').then(ok=>{if(ok){S.qi={};S.cp={};S.coupon=null;document.getElementById('couponCode').value='';document.getElementById('couponInfo').style.display='none';renderGrid();renderQL();updFC();toast('已清空','success');}});}
+
+function renderQL(){
+    const ct=document.getElementById('quoteList');const ids=Object.keys(S.qi);const tq=ids.reduce((s,id)=>s+S.qi[id],0);
+    document.getElementById('qCnt').textContent=tq;
+    if(ids.length===0){ct.innerHTML=`<div class="empty"><i class="fas fa-cart-plus"></i><p>报价单是空的</p></div>`;document.getElementById('totalAmount').textContent='¥0.00';document.getElementById('originalTotal').textContent='¥0.00';document.getElementById('totalCost').textContent='¥0.00';document.getElementById('profitInfo').textContent='¥0.00 (0.0%)';return;}
+    let total=0,h='';
+    ids.forEach(id=>{const p=S.all.find(pp=>pp.id==id);if(!p)return;const qty=S.qi[id];const price=gcp(p);const sub=price*qty;total+=sub;h+=`<div class="qi"><div><div class="qi-n">${p.series} ${p.name}</div><div class="qi-p">${fp(price)} × <input type="number" class="qi-input" value="${qty}" min="1" data-id="${id}" onchange="setQty(${id},this.value)" onkeydown="if(event.key==='Enter'){setQty(${id},this.value);this.blur();}"></div></div><div class="qi-q"><button class="qi-b" onclick="updQ(${id},-1)">-</button><button class="qi-b" onclick="updQ(${id},1)">+</button></div><span class="qi-x" onclick="delQ(${id})"><i class="fas fa-times"></i></span></div>`;});
+    let ft=total*(S.gd/100);if(S.coupon)ft=ft*(S.coupon.discount/100);
+    let tc=0;ids.forEach(id=>{const p=S.all.find(pp=>pp.id==id);if(p)tc+=p.cost*S.qi[id];});
+    const profit=ft-tc;const pm=ft>0?((profit/ft)*100).toFixed(1):0;
+    ct.innerHTML=h;document.getElementById('totalAmount').textContent=fp(ft);document.getElementById('originalTotal').textContent=fp(total);document.getElementById('totalCost').textContent=fp(tc);document.getElementById('profitInfo').textContent=`${fp(profit)} (${pm}%)`;
+}
+
+function updFC(){const t=Object.keys(S.qi).reduce((s,id)=>s+S.qi[id],0);document.getElementById('fabCnt').textContent=t;}
+
+async function addProduct(){const series=document.getElementById('p_series').value.trim()||'默认系列';const color=document.getElementById('p_color').value.trim()||'默认颜色';const name=document.getElementById('p_name').value.trim();const cost=parseFloat(document.getElementById('p_cost').value)||0;let price=parseFloat(document.getElementById('p_price').value);const nv=vStr(name,{fn:'型号名称'});if(!nv.v){toast(nv.e,'warning');return;}if(!price&&cost>0)price=cost/(1-C.MARGIN);const prod={series,color,name:nv.val,cost,price:price||0,version:0};CM.st('syncing','保存中...');try{const{data,error}=await db.from('products').insert([prod]).select();if(error)throw new Error(`保存失败:${error.message}`);if(data&&data[0]){CM.add(data[0]);S.all=CM.get();}document.getElementById('p_series').value='';document.getElementById('p_color').value='';document.getElementById('p_name').value='';document.getElementById('p_cost').value='';document.getElementById('p_price').value='';renderSB();renderMFB();renderGrid();toast('产品保存成功！','success');CM.st('synced','已同步');}catch(e){console.error('添加失败:',e);toast(e.message,'error');CM.st('offline','同步失败');}}
+
+async function delSeries(sn){const ok=await showC(`确定删除【${sn}】系列吗？不可恢复！`);if(!ok)return;CM.st('syncing','删除中...');try{const{data:pd,error:qe}=await db.from('products').select('id').eq('series',sn);if(qe)throw new Error(`查询失败:${qe.message}`);const{error:de}=await db.from('products').delete().eq('series',sn);if(de)throw new Error(`删除失败:${de.message}`);pd.forEach(p=>{delete S.qi[p.id];delete S.cp[p.id];});CM.delS(sn);S.all=CM.get();renderSB();renderMFB();renderGrid();renderQL();toast(`系列删除成功！共${pd.length}个产品`,'success');CM.st('synced','已同步');}catch(e){console.error('删除系列失败:',e);toast(e.message,'error');CM.st('offline','同步失败');}}
+
+async function delProd(id,pn){const ok=await showC(`确定删除【${pn}】吗？`);if(!ok)return;CM.st('syncing','删除中...');try{const{error}=await db.from('products').delete().eq('id',id);if(error)throw new Error(`删除失败:${error.message}`);delete S.qi[id];delete S.cp[id];CM.del(id);S.all=CM.get();renderSB();renderMFB();renderGrid();renderQL();updFC();toast('产品删除成功！','success');CM.st('synced','已同步');}catch(e){console.error('删除产品失败:',e);toast(e.message,'error');CM.st('offline','同步失败');}}
+
+async function editProdPrice(id,type,cv){const tn=type==='cost'?'成本':'标准售价';const nv=prompt(`请输入新的${tn}：`,cv);if(nv===null)return;const v=vNum(nv,{fn:tn,min:0});if(!v.v){toast(v.e,'warning');return;}const p=S.all.find(pp=>pp.id===id);if(!p){toast('产品不存在','error');return;}const ver=p.version||0;const ud={[type]:v.val};if(ver>0)ud.version=ver+1;CM.st('syncing','更新中...');try{let q=db.from('products').update(ud);if(ver>0)q=q.eq('id',id).eq('version',ver);else q=q.eq('id',id);const{data,error}=await q.select();if(error)throw new Error(`更新失败:${error.message}`);if(!data||data.length===0){toast('该产品已被其他人修改','warning');return;}CM.upd(id,ud);S.all=CM.get();renderSB();renderMFB();renderGrid();renderQL();toast(`${tn}更新成功！`,'success');CM.st('synced','已同步');}catch(e){console.error('更新失败:',e);toast(e.message,'error');CM.st('offline','同步失败');}}
+
+function editQPrice(id,cp,pn){const nv=prompt(`给【${pn}】修改本次临时单价：`,cp);if(nv===null)return;const v=vNum(nv,{fn:'单价',min:0});if(!v.v){toast(v.e,'warning');return;}S.cp[id]=v.val;renderQL();toast('价格已修改','success',1500);}
+
+function updGD(v){const val=v=vNum(v,{fn:'折扣',min:1,max:100});if(!val.v){toast(val.e,'warning');return;}S.gd=val.val;renderQL();}
+
+function changeTier(tier){if(Object.keys(S.qi).length>0){const ok=confirm('⚠️ 切换方案将重新计算所有单价（清除手动特价），是否继续？');if(!ok){document.getElementById('pricingTier').value=S.tier;return;}}S.tier=tier;S.cp={};renderGrid();renderQL();}
+
+function resetCoupon(){document.getElementById('couponCode').value='';S.coupon=null;document.getElementById('couponInfo').style.display='none';}
+
+async function applyCoupon(){const code=document.getElementById('couponCode').value.trim();if(!code){toast('请输入优惠码','warning');return;}try{const{data,error}=await db.from('coupons').select('*').eq('code',code).single();if(error)throw new Error('优惠码无效');if(data.used){toast('该优惠码已被使用','warning');return;}S.coupon=data;document.getElementById('couponInfo').textContent=`✅ ${data.discount}折优惠码已应用`;document.getElementById('couponInfo').style.display='block';renderQL();toast('优惠码应用成功！','success');}catch(e){toast(e.message,'error');}}
+
+async function saveQuote(){const cn=document.getElementById('clientName').value.trim();const cp2=document.getElementById('clientPhone').value.trim();const ids=Object.keys(S.qi);if(ids.length===0){toast('报价单为空，无法保存','warning');return;}let total=0;const items=[];ids.forEach(id=>{const p=S.all.find(pp=>pp.id==id);if(!p)return;const price=gcp(p);const qty=S.qi[id];total+=price*qty;items.push({product_id:parseInt(id),qty,price});});let finalTotal=total*(S.gd/100);if(S.coupon)finalTotal=finalTotal*(S.coupon.discount/100);let totalCost=0;ids.forEach(id=>{const p=S.all.find(pp=>pp.id==id);if(p)totalCost+=p.cost*S.qi[id];});const quote={client_name:cn,client_phone:cp2,items,total_amount:finalTotal,total_cost:totalCost,discount:S.gd,pricing_tier:S.tier,coupon_code:S.coupon?S.coupon.code:null,status:'pending'};CM.st('syncing','保存中...');try{const{data,error}=await db.from('quotes').insert([quote]).select();if(error)throw new Error(`保存失败:${error.message}`);toast('报价单保存成功！','success');S.qi={};S.cp={};S.coupon=null;document.getElementById('clientName').value='';document.getElementById('clientPhone').value='';document.getElementById('couponCode').value='';document.getElementById('couponInfo').style.display='none';renderGrid();renderQL();updFC();CM.st('synced','已同步');}catch(e){console.error('保存失败:',e);toast(e.message,'error');CM.st('offline','同步失败');}}
+
+async function loadQuoteHistory(){try{const{data,error}=await db.from('quotes').select('*').order('created_at',{ascending:false});if(error)throw error;S.qh=data||[];const ct=document.getElementById('quoteHistoryList');document.getElementById('historyCount').textContent=S.qh.length;let filtered=S.qh;if(S.qsf!=='all')filtered=filtered.filter(q=>q.status===S.qsf);if(filtered.length===0){ct.innerHTML=`<div style="text-align:center;color:#6b7280;padding:20px;">暂无报价单</div>`;return;}ct.innerHTML=filtered.map(q=>`<div class="quote-card ${S.selQ===q.id?'sel':''}" data-id="${q.id}"><div style="display:flex;justify-content:space-between;align-items:center;"><div><div style="font-size:12px;font-weight:600;">${q.client_name||'未命名客户'}</div><div style="font-size:10px;color:#6b7280;">${fdt(q.created_at)}</div></div><div style="text-align:right;"><div style="font-size:13px;font-weight:700;color:#ef4444;">${fp(q.total_amount)}</div>${sb(q.status)}</div></div></div>`).join('');ct.querySelectorAll('.quote-card').forEach(card=>{card.addEventListener('click',()=>{S.selQ=parseInt(card.dataset.id);loadQuoteHistory();document.getElementById('btnLoadSelectedQuote').disabled=false;});});}catch(e){console.error('加载历史失败:',e);toast(e.message,'error');}}
+
+async function showQuoteDetail(id){try{const{data,error}=await db.from('quotes').select('*').eq('id',id).single();if(error)throw error;S.cvq=data;document.getElementById('quoteDetailStatusBadge').innerHTML=sb(data.status);let itemsHtml='';if(data.items&&data.items.length>0){itemsHtml=data.items.map(item=>{const p=S.all.find(pp=>pp.id===item.product_id);if(!p)return '';return `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:11px;border-bottom:1px solid #f3f4f6;"><span>${p.series} ${p.name}</span><span>${fp(item.price)} × ${item.qty} = ${fp(item.price*item.qty)}</span></div>`;}).join('');}document.getElementById('quoteDetailContent').innerHTML=`<div style="margin-bottom:12px;"><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px;"><div><span style="color:#6b7280;">客户:</span> ${data.client_name||'未填写'}</div><div><span style="color:#6b7280;">电话:</span> ${data.client_phone||'未填写'}</div><div><span style="color:#6b7280;">方案:</span> ${data.pricing_tier||'A'}</div><div><span style="color:#6b7280;">折扣:</span> ${data.discount||100}%</div></div></div><div style="margin-bottom:12px;"><h4 style="font-size:12px;font-weight:600;margin-bottom:6px;">产品清单</h4>${itemsHtml||'<p style="font-size:11px;color:#6b7280;">暂无产品信息</p>'}</div><div style="background:#f9fafb;padding:8px;border-radius:6px;font-size:12px;"><div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span>总金额:</span><span style="font-weight:700;color:#ef4444;">${fp(data.total_amount)}</span></div><div style="display:flex;justify-content:space-between;"><span>总成本:</span><span style="font-weight:700;">${fp(data.total_cost)}</span></div></div>`;openModal('quoteDetailModal');}catch(e){console.error('加载详情失败:',e);toast(e.message,'error');}}
+
+function closeQuoteDetailModal(){closeModal('quoteDetailModal');S.cvq=null;}
+
+async function toggleQuoteStatus(){if(!S.cvq)return;const ns=S.cvq.status==='pending'?'completed':'pending';try{const{error}=await db.from('quotes').update({status:ns}).eq('id',S.cvq.id);if(error)throw error;S.cvq.status=ns;document.getElementById('quoteDetailStatusBadge').innerHTML=sb(ns);toast(`已标记为${C.STATUS[ns].l}`,'success');loadQuoteHistory();}catch(e){toast(e.message,'error');}}
+
+async function loadSelectedQuote(){if(!S.selQ)return;try{const{data,error}=await db.from('quotes').select('*').eq('id',S.selQ).single();if(error)throw error;S.qi={};S.cp={};if(data.items)data.items.forEach(item=>{S.qi[item.product_id]=item.qty;});document.getElementById('clientName').value=data.client_name||'';document.getElementById('clientPhone').value=data.client_phone||'';document.getElementById('pricingTier').value=data.pricing_tier||'A';S.gd=data.discount||100;renderGrid();renderQL();updFC();closeModal('quoteHistoryModal');toast('报价单已加载','success');}catch(e){toast(e.message,'error');}}
+
+async function loadQuoteToEditor(id){try{const{data,error}=await db.from('quotes').select('*').eq('id',id).single();if(error)throw error;S.qi={};S.cp={};if(data.items)data.items.forEach(item=>{S.qi[item.product_id]=item.qty;});document.getElementById('clientName').value=data.client_name||'';document.getElementById('clientPhone').value=data.client_phone||'';document.getElementById('pricingTier').value=data.pricing_tier||'A';S.gd=data.discount||100;renderGrid();renderQL();updFC();closeModal('quoteDetailModal');toast('报价单已加载','success');}catch(e){toast(e.message,'error');}}
+
+async function loadStats(){try{const now=new Date();const start=new Date(now.getFullYear(),now.getMonth(),1);const{data,error}=await db.from('quotes').select('*').gte('created_at',start.toISOString());if(error)throw error;const quotes=data||[];const totalQuotes=quotes.length;const completed=quotes.filter(q=>q.status==='completed');const totalRevenue=completed.reduce((s,q)=>s+(q.total_amount||0),0);const totalCost=completed.reduce((s,q)=>s+(q.total_cost||0),0);const profit=totalRevenue-totalCost;const pm=totalRevenue>0?((profit/totalRevenue)*100).toFixed(1):0;document.getElementById('statsContent').innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;"><div class="stat-card"><div style="font-size:11px;">报价单数</div><div class="stat-v">${totalQuotes}</div></div><div class="stat-card g"><div style="font-size:11px;">已成交</div><div class="stat-v">${completed.length}</div></div><div class="stat-card"><div style="font-size:11px;">总收入</div><div class="stat-v">${fp(totalRevenue)}</div></div><div class="stat-card g"><div style="font-size:11px;">总利润</div><div class="stat-v">${fp(profit)}</div></div></div><div style="background:#f9fafb;padding:10px;border-radius:6px;font-size:12px;"><div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span>总成本:</span><span>${fp(totalCost)}</span></div><div style="display:flex;justify-content:space-between;"><span>毛利率:</span><span style="font-weight:700;color:#10b981;">${pm}%</span></div></div>`;}catch(e){console.error('加载统计失败:',e);toast(e.message,'error');}}
+
+async function loadCoupons(){try{const{data,error}=await db.from('coupons').select('*').order('created_at',{ascending:false});if(error)throw error;const ct=document.getElementById('couponList');if(!data||data.length===0){ct.innerHTML=`<div style="text-align:center;color:#6b7280;padding:12px;">暂无优惠券</div>`;return;}ct.innerHTML=data.map(c=>`<div class="coupon-card"><div class="coupon-code">${c.code}</div><div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;"><span style="font-size:11px;color:#92400e;">${c.discount}折</span><span style="font-size:10px;color:#92400e;">${c.used?'已使用':'未使用'}</span></div></div>`).join('');}catch(e){console.error('加载优惠券失败:',e);toast(e.message,'error');}}
+
+async function generateCoupon(){const dv=document.getElementById('couponDiscount').value;const v=vNum(dv,{fn:'折扣',min:1,max:99});if(!v.v){toast(v.e,'warning');return;}const code=gcc();CM.st('syncing','生成中...');try{const{data,error}=await db.from('coupons').insert([{code,discount:v.val,used:false}]).select();if(error)throw new Error(`生成失败:${error.message}`);toast(`优惠券生成成功：${code}`,'success');loadCoupons();CM.st('synced','已同步');}catch(e){console.error('生成优惠券失败:',e);toast(e.message,'error');CM.st('offline','同步失败');}}
+
+async function processAIQuote(){const input=document.getElementById('aiInput').value.trim();if(!input){toast('请输入需求描述','warning');return;}document.getElementById('aiLoading').style.display='block';document.getElementById('aiBtn').disabled=true;try{const{data,error}=await db.from('ai_quotes').insert([{input_text:input,status:'pending'}]).select();if(error)throw new Error(`AI请求失败:${error.message}`);const quoteId=data[0].id;await pollAIResult(quoteId);}catch(e){toast(e.message,'error');}finally{document.getElementById('aiLoading').style.display='none';document.getElementById('aiBtn').disabled=false;}}
+
+async function pollAIResult(quoteId){for(let i=0;i<30;i++){await new Promise(r=>setTimeout(r,2000));const{data,error}=await db.from('ai_quotes').select('*').eq('id',quoteId).single();if(error)continue;if(data.status==='completed'&&data.result){applyAIResult(data.result);return;}if(data.status==='failed'){toast('AI处理失败','error');return;}}toast('AI处理超时，请稍后重试','warning');}
+
+function applyAIResult(result){try{const matches=JSON.parse(result);let count=0;matches.forEach(m=>{const p=S.all.find(pp=>pp.name.includes(m.keyword)||pp.series.includes(m.keyword));if(p){S.qi[p.id]=(S.qi[p.id]||0)+m.qty;count++;}});if(count>0){renderGrid();renderQL();updFC();toast(`AI已匹配${count}个产品`,'success');}else{toast('AI未找到匹配的产品','warning');}}catch(e){toast('AI结果解析失败','error');}}
+
+async function exportImage(){const ids=Object.keys(S.qi);if(ids.length===0){toast('报价单为空','warning');return;}document.getElementById('outClientName').textContent=document.getElementById('clientName').value||'未填写';document.getElementById('outClientPhone').textContent=document.getElementById('clientPhone').value||'未填写';document.getElementById('outDate').textContent=fd();document.getElementById('outSubtitle').textContent=`报价日期：${fd()}`;const tb=document.getElementById('outTableBody');let total=0;let html='';let idx=1;ids.forEach(id=>{const p=S.all.find(pp=>pp.id==id);if(!p)return;const qty=S.qi[id];const price=gcp(p);const sub=price*qty;total+=sub;html+=`<tr><td style="padding:8px;border:1px solid #000;text-align:center;">${idx++}</td><td style="padding:8px;border:1px solid #000;">${p.series}</td><td style="padding:8px;border:1px solid #000;">${p.color}</td><td style="padding:8px;border:1px solid #000;">${p.name}</td><td style="padding:8px;border:1px solid #000;text-align:center;">${qty}</td><td style="padding:8px;border:1px solid #000;text-align:right;">${fp(price)}</td><td style="padding:8px;border:1px solid #000;text-align:right;">${fp(sub)}</td></tr>`;});tb.innerHTML=html;let finalTotal=total*(S.gd/100);if(S.coupon)finalTotal=finalTotal*(S.coupon.discount/100);document.getElementById('outTableFoot').innerHTML=`<tr><td colspan="6" style="padding:12px;border:1px solid #000;text-align:right;font-weight:bold;">合计：</td><td style="padding:12px;border:1px solid #000;text-align:right;font-weight:bold;color:#ef4444;">${fp(finalTotal)}</td></tr>`;const ea=document.getElementById('exportArea');try{const canvas=await html2canvas(ea,{scale:2,useCORS:true});const link=document.createElement('a');link.download=`公牛报价单_${fd()}.png`;link.href=canvas.toDataURL('image/png');link.click();toast('图片导出成功！','success');}catch(e){toast('图片导出失败:'+e.message,'error');}}
+
+async function exportExcelFile(){const ids=Object.keys(S.qi);if(ids.length===0){toast('报价单为空','warning');return;}try{const wb=new ExcelJS.Workbook();const ws=wb.addWorksheet('报价单');ws.columns=[{header:'序号',key:'idx',width:8},{header:'系列',key:'series',width:15},{header:'颜色',key:'color',width:12},{header:'名称',key:'name',width:25},{header:'数量',key:'qty',width:10},{header:'单价',key:'price',width:12},{header:'小计',key:'sub',width:12}];ws.getRow(1).font={bold:true,color:{argb:'FFFFFFFF'}};ws.getRow(1).fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF006400'}};let total=0;let idx=1;ids.forEach(id=>{const p=S.all.find(pp=>pp.id==id);if(!p)return;const qty=S.qi[id];const price=gcp(p);const sub=price*qty;total+=sub;ws.addRow({idx:idx++,series:p.series,color:p.color,name:p.name,qty,price:fp(price),sub:fp(sub)});});let finalTotal=total*(S.gd/100);if(S.coupon)finalTotal=finalTotal*(S.coupon.discount/100);ws.addRow({});ws.addRow({idx:'',series:'',color:'',name:'合计',qty:'',price:'',sub:fp(finalTotal)});const buffer=await wb.xlsx.writeBuffer();const blob=new Blob([buffer],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});const link=document.createElement('a');link.href=URL.createObjectURL(blob);link.download=`公牛报价单_${fd()}.xlsx`;link.click();toast('Excel导出成功！','success');}catch(e){toast('Excel导出失败:'+e.message,'error');}}
+
+async function exportProductLibraryExcel(){try{const wb=new ExcelJS.Workbook();const ws=wb.addWorksheet('产品库');ws.columns=[{header:'系列',key:'series',width:15},{header:'颜色',key:'color',width:12},{header:'名称',key:'name',width:25},{header:'成本',key:'cost',width:12},{header:'售价',key:'price',width:12},{header:'利润率',key:'margin',width:10}];ws.getRow(1).font={bold:true,color:{argb:'FFFFFFFF'}};ws.getRow(1).fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF006400'}};S.all.forEach(p=>{const price=parseFloat(p.price);const cost=parseFloat(p.cost);const margin=price>0?(((price-cost)/price)*100).toFixed(1):0;ws.addRow({series:p.series,color:p.color,name:p.name,cost:fp(cost),price:fp(price),margin:margin+'%'});});const buffer=await wb.xlsx.writeBuffer();const blob=new Blob([buffer],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});const link=document.createElement('a');link.href=URL.createObjectURL(blob);link.download=`产品库分析表_${fd()}.xlsx`;link.click();toast('分析表导出成功！','success');}catch(e){toast('导出失败:'+e.message,'error');}}
+
+function bindEvents(){
+    document.getElementById('btnAddProduct').addEventListener('click',addProduct);
+    document.getElementById('btnRefreshCache').addEventListener('click',forceRefresh);
+    document.getElementById('p_cost').addEventListener('input',autoCalc);
+    document.getElementById('btnClearQuote').addEventListener('click',clearQ);
+    document.getElementById('ctxEditCost').addEventListener('click',ctxEditCost);
+    document.getElementById('ctxEditPrice').addEventListener('click',ctxEditPrice);
+    document.getElementById('ctxDelete').addEventListener('click',ctxDelete);
+    document.addEventListener('click',e=>{if(!e.target.closest('.ctx-menu'))hideCtx();});
+    document.getElementById('btnSaveQuote').addEventListener('click',saveQuote);
+    document.getElementById('btnViewHistory').addEventListener('click',()=>{S.selQ=null;S.qsf='all';document.getElementById('quoteStatusFilter').value='all';document.getElementById('btnLoadSelectedQuote').disabled=true;openModal('quoteHistoryModal');loadQuoteHistory();});
+    document.getElementById('btnViewStats').addEventListener('click',()=>{openModal('statsModal');loadStats();});
+    document.getElementById('btnViewCoupons').addEventListener('click',()=>{openModal('couponModal');loadCoupons();});
+    document.getElementById('btnExportImage').addEventListener('click',exportImage);
+    document.getElementById('btnExportExcel').addEventListener('click',exportExcelFile);
+    document.getElementById('btnExportAnalysis').addEventListener('click',exportProductLibraryExcel);
+    document.getElementById('aiBtn').addEventListener('click',processAIQuote);
+    document.getElementById('btnApplyCoupon').addEventListener('click',applyCoupon);
+    document.getElementById('btnCloseDrawer').addEventListener('click',()=>{document.getElementById('quoteDrawer').classList.remove('open');});
+    document.getElementById('fabQuote').addEventListener('click',()=>{document.getElementById('quoteDrawer').classList.toggle('open');});
+    document.getElementById('fabAdd').addEventListener('click',()=>openModal('addProductModal'));
+    document.getElementById('btnCloseQuoteHistoryModal').addEventListener('click',()=>closeModal('quoteHistoryModal'));
+    document.getElementById('btnCloseQuoteDetailModal').addEventListener('click',()=>closeQuoteDetailModal());
+    document.getElementById('btnCloseStatsModal').addEventListener('click',()=>closeModal('statsModal'));
+    document.getElementById('btnRefreshQuotes').addEventListener('click',loadQuoteHistory);
+    document.getElementById('btnRefreshStats').addEventListener('click',()=>loadStats());
+    document.getElementById('btnLoadSelectedQuote').addEventListener('click',loadSelectedQuote);
+    document.getElementById('btnToggleStatus').addEventListener('click',toggleQuoteStatus);
+    document.getElementById('btnGenerateCoupon').addEventListener('click',generateCoupon);
+    document.getElementById('btnLoadThisQuote').addEventListener('click',()=>{if(S.cvq)loadQuoteToEditor(S.cvq.id);});
+    document.getElementById('quoteStatusFilter').addEventListener('change',e=>{S.qsf=e.target.value;loadQuoteHistory();});
+    document.getElementById('searchInput').addEventListener('input',debounce(e=>{S.q=e.target.value.trim();renderGrid();},300));
+    document.getElementById('pricingTier').addEventListener('change',e=>changeTier(e.target.value));
+    document.getElementById('btnToggleSidebar').addEventListener('click',()=>{document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebarOverlay').classList.toggle('show');});
+    document.getElementById('sidebarOverlay').addEventListener('click',()=>{document.getElementById('sidebar').classList.remove('open');document.getElementById('sidebarOverlay').classList.remove('show');});
+    ['addProductModal','quoteHistoryModal','quoteDetailModal','statsModal','couponModal'].forEach(id=>{document.getElementById(id).addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal(id);});});
+}
+
+document.addEventListener('DOMContentLoaded',()=>{bindEvents();loadProd();});
+window.addEventListener('resize',()=>{renderMFB();});
+</script>
+</body>
+</html>
