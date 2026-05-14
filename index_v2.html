@@ -18,9 +18,8 @@
 
         .top-bar { position: fixed; top: 0; left: 0; right: 0; height: 48px; background: white; border-bottom: 1px solid #e5e7eb; display: flex; align-items: center; padding: 0 16px; gap: 12px; z-index: 100; }
         .logo { font-weight: 700; color: var(--brand-green); font-size: 14px; display: flex; align-items: center; gap: 6px; white-space: nowrap; }
-        .search-input { flex: 1; max-width: 320px; padding: 6px 12px 6px 32px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 13px; outline: none; background: #f9fafb; transition: all 0.3s; }
+        .search-input { flex: 1; max-width: 320px; padding: 6px 12px 6px 32px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 13px; outline: none; background: #f9fafb; }
         .search-input:focus { border-color: var(--brand-green); background: white; }
-        .search-input.expanded { position: fixed; top: 0; left: 0; right: 0; max-width: 100%; height: 48px; border-radius: 0; z-index: 200; padding-left: 40px; font-size: 15px; }
         .top-actions { display: flex; gap: 6px; margin-left: auto; }
         .btn { padding: 5px 10px; border-radius: 6px; font-size: 12px; cursor: pointer; border: 1px solid #e5e7eb; background: white; color: #6b7280; display: flex; align-items: center; gap: 4px; white-space: nowrap; }
         .btn:hover { background: #f3f4f6; }
@@ -93,23 +92,12 @@
         .cp.p { background: #eff6ff; }
         .card-foot { display: flex; justify-content: space-between; align-items: center; }
         .card-badge { font-size: 10px; color: var(--brand-green); font-weight: 600; }
-        .add { width: 28px; height: 28px; border-radius: 50%; background: var(--brand-green); color: white; border: none; cursor: pointer; font-size: 14px; font-weight: 700; display: flex; align-items: center; justify-content: center; transition: transform 0.15s; }
+        .add { width: 28px; height: 28px; border-radius: 50%; background: var(--brand-green); color: white; border: none; cursor: pointer; font-size: 14px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
         .add:hover { background: var(--brand-dark); }
-        .add.pop { animation: popIn 0.3s ease; }
-        @keyframes popIn { 0%{transform:scale(1);} 50%{transform:scale(1.3);} 100%{transform:scale(1);} }
         .add.in { background: #10b981; font-size: 12px; }
 
         .empty { grid-column: 1/-1; text-align: center; padding: 40px; color: #9ca3af; }
         .empty i { font-size: 36px; margin-bottom: 8px; display: block; }
-
-        .skeleton { grid-column: 1/-1; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; padding: 14px; }
-        .sk-card { background: white; border-radius: 8px; padding: 12px; height: 120px; }
-        .sk-line { height: 12px; border-radius: 4px; background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; margin-bottom: 8px; }
-        .sk-line.w60 { width: 60%; }
-        .sk-line.w40 { width: 40%; }
-        .sk-line.w80 { width: 80%; }
-        .sk-line.h20 { height: 20px; }
-        @keyframes shimmer { 0%{background-position:200% 0;} 100%{background-position:-200% 0;} }
 
         .drawer { position: fixed; right: 0; top: 48px; bottom: 0; width: 360px; background: white; box-shadow: -4px 0 16px rgba(0,0,0,0.08); display: flex; flex-direction: column; z-index: 90; transform: translateX(100%); transition: transform 0.3s; }
         .drawer.open { transform: translateX(0); }
@@ -129,8 +117,7 @@
         .qi-n { flex: 1; font-size: 11px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .qi-p { font-size: 10px; color: #6b7280; }
         .qi-q { display: flex; align-items: center; gap: 3px; }
-        .qi-b { width: 28px; height: 28px; border-radius: 6px; border: 1px solid #e5e7eb; background: white; cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; -webkit-tap-highlight-color: transparent; }
-        .qi-b:active { background: #f3f4f6; }
+        .qi-b { width: 20px; height: 20px; border-radius: 4px; border: 1px solid #e5e7eb; background: white; cursor: pointer; font-size: 10px; display: flex; align-items: center; justify-content: center; }
         .qi-v { font-size: 11px; font-weight: 600; min-width: 16px; text-align: center; }
         .qi-input { width: 40px; padding: 2px 4px; border: 1px solid #e5e7eb; border-radius: 3px; font-size: 11px; font-weight: 600; text-align: center; outline: none; background: white; }
         .qi-input:focus { border-color: var(--brand-green); }
@@ -182,10 +169,6 @@
         .cache-s.synced { color: #10b981; }
         .cache-s.offline { color: #ef4444; }
 
-        .offline-banner { position: fixed; top: 48px; left: 0; right: 0; background: #fef3c7; border-bottom: 1px solid #f59e0b; padding: 6px 16px; font-size: 12px; color: #92400e; display: none; align-items: center; gap: 6px; z-index: 99; }
-        .offline-banner.show { display: flex; }
-        .offline-banner i { font-size: 14px; }
-
         .status-badge { display: inline-block; padding: 2px 6px; border-radius: 6px; font-size: 10px; }
         .status-pending { background: #e5e7eb; color: #374151; }
         .status-completed { background: #d1fae5; color: #065f46; }
@@ -207,12 +190,10 @@
             .top-actions { gap: 2px; }
             .btn { padding: 5px 6px; font-size: 11px; }
             .btn span { display: none; }
-            .sidebar { position: fixed; left: 0; top: 48px; bottom: 0; width: 260px; z-index: 101; transform: translateX(-100%); transition: transform 0.3s; box-shadow: 4px 0 16px rgba(0,0,0,0.1); }
+            .sidebar { position: fixed; left: 0; top: 48px; bottom: 0; width: 260px; z-index: 95; transform: translateX(-100%); transition: transform 0.3s; box-shadow: 4px 0 16px rgba(0,0,0,0.1); }
             .sidebar.open { transform: translateX(0); }
             .sidebar-overlay { display: none; position: fixed; inset: 0; top: 48px; background: rgba(0,0,0,0.3); z-index: 94; }
             .sidebar-overlay.show { display: block; }
-            .search-overlay { display: none; position: fixed; inset: 0; top: 48px; background: rgba(0,0,0,0.5); z-index: 199; }
-            .search-overlay.show { display: block; }
             .main { margin-left: 0; }
             .grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; padding: 8px; }
             .card { padding: 10px; }
@@ -221,7 +202,7 @@
             .cp-l { font-size: 8px; }
             .drawer { width: 100%; }
             .fab { bottom: 12px; right: 12px; padding: 10px 14px; font-size: 13px; }
-            .mobile-menu-btn { display: flex !important; }
+            .mobile-menu-btn { display: none; }
             .qi-input { width: 36px; }
             .model-btn { font-size: 10px; padding: 4px 8px; }
             .color-btn { font-size: 11px; padding: 5px 8px; }
@@ -242,9 +223,7 @@
 <body>
 <div id="toastC" class="toast-c"></div>
 <div id="cacheS" class="cache-s synced">已同步</div>
-<div class="offline-banner" id="offlineBanner"><i class="fas fa-wifi-slash"></i><span>当前使用缓存数据，部分功能可能受限</span></div>
 <div class="sidebar-overlay" id="sidebarOverlay"></div>
-<div class="search-overlay" id="searchOverlay"></div>
 
 <nav class="top-bar">
     <button class="btn mobile-menu-btn" id="btnToggleSidebar"><i class="fas fa-bars"></i></button>
@@ -262,7 +241,7 @@
 </nav>
 
 <div class="layout">
-    <aside class="sidebar" id="sidebar">
+    <aside class="sidebar">
         <div class="sidebar-head">
             <span>产品系列</span>
             <button class="btn" style="padding:3px 8px;font-size:11px;" id="fabAdd"><i class="fas fa-plus"></i>录入</button>
@@ -277,16 +256,7 @@
             <div class="cnt-label" id="productCount"></div>
         </div>
         <div class="mobile-filter-bar" id="mobileFilterBar"></div>
-        <div class="grid" id="productGrid">
-            <div class="skeleton" id="skeletonGrid">
-                <div class="sk-card"><div class="sk-line w60 h20"></div><div class="sk-line w80"></div><div class="sk-line w40"></div></div>
-                <div class="sk-card"><div class="sk-line w60 h20"></div><div class="sk-line w80"></div><div class="sk-line w40"></div></div>
-                <div class="sk-card"><div class="sk-line w60 h20"></div><div class="sk-line w80"></div><div class="sk-line w40"></div></div>
-                <div class="sk-card"><div class="sk-line w60 h20"></div><div class="sk-line w80"></div><div class="sk-line w40"></div></div>
-                <div class="sk-card"><div class="sk-line w60 h20"></div><div class="sk-line w80"></div><div class="sk-line w40"></div></div>
-                <div class="sk-card"><div class="sk-line w60 h20"></div><div class="sk-line w80"></div><div class="sk-line w40"></div></div>
-            </div>
-        </div>
+        <div class="grid" id="productGrid"></div>
     </div>
 </div>
 
@@ -400,7 +370,7 @@
 const SUPABASE_URL='https://ihekcwhmsbuetvgucyrv.supabase.co';
 const SUPABASE_KEY='sb_publishable_A9tCXTu6-MPrcuJFZiuPRA_l-PY4UsJ';
 const C={TIER:{A:{type:'fixed'},B:{type:'margin',d:0.90},C:{type:'margin',d:0.95}},MARGIN:0.15,CK:'bull_quote_v2',CA:5*60*1000,STATUS:{pending:{l:'未成交',c:'status-pending'},completed:{l:'已成交',c:'status-completed'}}};
-const CM={data:null,ts:null,load(){try{const c=localStorage.getItem(C.CK);if(c){const p=JSON.parse(c);if(Date.now()-p.ts<C.CA){this.data=p.data;this.ts=p.ts;return true;}}}catch(e){}return false;},save(){try{localStorage.setItem(C.CK,JSON.stringify({data:this.data,ts:Date.now()}));this.ts=Date.now();}catch(e){}},get(){return this.data||[];},add(p){if(!this.data)this.data=[];this.data.push(p);this.save();},upd(id,u){if(!this.data)return false;const i=this.data.findIndex(p=>p.id===id);if(i!==-1){this.data[i]={...this.data[i],...u};this.save();return true;}return false;},del(id){if(!this.data)return false;const i=this.data.findIndex(p=>p.id===id);if(i!==-1){this.data.splice(i,1);this.save();return true;}return false;},delS(s){if(!this.data)return 0;const o=this.data.length;this.data=this.data.filter(p=>p.series!==s);const d=o-this.data.length;if(d>0)this.save();return d;},clear(){this.data=null;this.ts=null;localStorage.removeItem(C.CK);},st(s,m){const e=document.getElementById('cacheS');e.className='cache-s '+s;e.textContent=m;const ob=document.getElementById('offlineBanner');if(ob)ob.classList.toggle('show',s==='offline');}};
+const CM={data:null,ts:null,load(){try{const c=localStorage.getItem(C.CK);if(c){const p=JSON.parse(c);if(Date.now()-p.ts<C.CA){this.data=p.data;this.ts=p.ts;return true;}}}catch(e){}return false;},save(){try{localStorage.setItem(C.CK,JSON.stringify({data:this.data,ts:Date.now()}));this.ts=Date.now();}catch(e){}},get(){return this.data||[];},add(p){if(!this.data)this.data=[];this.data.push(p);this.save();},upd(id,u){if(!this.data)return false;const i=this.data.findIndex(p=>p.id===id);if(i!==-1){this.data[i]={...this.data[i],...u};this.save();return true;}return false;},del(id){if(!this.data)return false;const i=this.data.findIndex(p=>p.id===id);if(i!==-1){this.data.splice(i,1);this.save();return true;}return false;},delS(s){if(!this.data)return 0;const o=this.data.length;this.data=this.data.filter(p=>p.series!==s);const d=o-this.data.length;if(d>0)this.save();return d;},clear(){this.data=null;this.ts=null;localStorage.removeItem(C.CK);},st(s,m){const e=document.getElementById('cacheS');e.className='cache-s '+s;e.textContent=m;}};
 const S={all:[],qi:{},cp:{},gd:100,tier:'A',series:null,color:null,q:'',selQ:null,qh:[],qsf:'all',cvq:null,coupon:null,exp:null,selColor:null,selModel:null};
 const db=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 const cMap={'白色':'#ffffff','黑色':'#1f2937','金色':'#fbbf24','香槟金':'#fde68a','银色':'#9ca3af','灰色':'#6b7280','远山灰':'#78716c'};
@@ -517,8 +487,6 @@ function updPath(){
 
 function renderGrid(){
     const g=document.getElementById('productGrid');
-    const sk=document.getElementById('skeletonGrid');
-    if(sk)sk.style.display='none';
     let ps=S.all;
     if(S.series&&S.color)ps=ps.filter(p=>p.series===S.series&&p.color===S.color);
     else if(S.series)ps=ps.filter(p=>p.series===S.series);
@@ -534,8 +502,8 @@ function renderGrid(){
         let pressTimer;
         const id=parseInt(c.dataset.id);
         c.addEventListener('click',e=>{if(!e.target.closest('.add'))addQ(id);});
-        c.addEventListener('mousedown',e=>{if(e.button===2||e.button===0){pressTimer=setTimeout(()=>{if(navigator.vibrate)navigator.vibrate(30);showCtx(e,id);},500);}});
-        c.addEventListener('touchstart',e=>{pressTimer=setTimeout(()=>{if(navigator.vibrate)navigator.vibrate(30);showCtx(e.touches[0],id);},500);},{passive:true});
+        c.addEventListener('mousedown',e=>{if(e.button===2||e.button===0){pressTimer=setTimeout(()=>showCtx(e,id),500);}});
+        c.addEventListener('touchstart',e=>{pressTimer=setTimeout(()=>showCtx(e.touches[0],id),500);},{passive:true});
         c.addEventListener('mouseup',()=>clearTimeout(pressTimer));
         c.addEventListener('touchend',()=>clearTimeout(pressTimer));
         c.addEventListener('touchmove',()=>clearTimeout(pressTimer));
@@ -576,7 +544,7 @@ async function ctxDelete(){
     await delProd(ctxTargetId,p.name);hideCtx();
 }
 
-function addQ(id){if(!S.qi[id])S.qi[id]=0;S.qi[id]+=1;renderGrid();renderQL();updFC();toast('已添加','success',1500);const btn=document.querySelector(`.add[data-id="${id}"]`);if(btn){btn.classList.add('pop');setTimeout(()=>btn.classList.remove('pop'),300);}}
+function addQ(id){if(!S.qi[id])S.qi[id]=0;S.qi[id]+=1;renderGrid();renderQL();updFC();toast('已添加','success',1500);}
 function updQ(id,ch){if(!S.qi[id])return;const n=S.qi[id]+ch;if(n<=0){delete S.qi[id];delete S.cp[id];}else{S.qi[id]=n;}renderGrid();renderQL();updFC();}
 function setQty(id,v){const n=parseInt(v);if(isNaN(n)||n<1){toast('数量必须大于0','warning');renderQL();return;}S.qi[id]=n;renderGrid();renderQL();updFC();}
 function delQ(id){delete S.qi[id];delete S.cp[id];renderGrid();renderQL();updFC();}
@@ -587,7 +555,7 @@ function renderQL(){
     document.getElementById('qCnt').textContent=tq;
     if(ids.length===0){ct.innerHTML=`<div class="empty"><i class="fas fa-cart-plus"></i><p>报价单是空的</p></div>`;document.getElementById('totalAmount').textContent='¥0.00';document.getElementById('originalTotal').textContent='¥0.00';document.getElementById('totalCost').textContent='¥0.00';document.getElementById('profitInfo').textContent='¥0.00 (0.0%)';return;}
     let total=0,h='';
-    ids.forEach(id=>{const p=S.all.find(pp=>pp.id==id);if(!p)return;const qty=S.qi[id];const price=gcp(p);const sub=price*qty;total+=sub;h+=`<div class="qi"><div><div class="qi-n">${p.series} ${p.name}</div><div class="qi-p">${fp(price)} × <input type="tel" inputmode="numeric" pattern="[0-9]*" class="qi-input" value="${qty}" min="1" data-id="${id}" onchange="setQty(${id},this.value)" onkeydown="if(event.key==='Enter'){setQty(${id},this.value);this.blur();}" onfocus="this.select()"></div></div><div class="qi-q"><button class="qi-b" onclick="updQ(${id},-1)">−</button><button class="qi-b" onclick="updQ(${id},1)">+</button></div><span class="qi-x" onclick="delQ(${id})"><i class="fas fa-times"></i></span></div>`;});
+    ids.forEach(id=>{const p=S.all.find(pp=>pp.id==id);if(!p)return;const qty=S.qi[id];const price=gcp(p);const sub=price*qty;total+=sub;h+=`<div class="qi"><div><div class="qi-n">${p.series} ${p.name}</div><div class="qi-p">${fp(price)} × <input type="number" class="qi-input" value="${qty}" min="1" data-id="${id}" onchange="setQty(${id},this.value)" onkeydown="if(event.key==='Enter'){setQty(${id},this.value);this.blur();}"></div></div><div class="qi-q"><button class="qi-b" onclick="updQ(${id},-1)">-</button><button class="qi-b" onclick="updQ(${id},1)">+</button></div><span class="qi-x" onclick="delQ(${id})"><i class="fas fa-times"></i></span></div>`;});
     let ft=total*(S.gd/100);if(S.coupon)ft=ft*(S.coupon.discount/100);
     let tc=0;ids.forEach(id=>{const p=S.all.find(pp=>pp.id==id);if(p)tc+=p.cost*S.qi[id];});
     const profit=ft-tc;const pm=ft>0?((profit/ft)*100).toFixed(1):0;
@@ -678,9 +646,6 @@ function bindEvents(){
     document.getElementById('btnLoadThisQuote').addEventListener('click',()=>{if(S.cvq)loadQuoteToEditor(S.cvq.id);});
     document.getElementById('quoteStatusFilter').addEventListener('change',e=>{S.qsf=e.target.value;loadQuoteHistory();});
     document.getElementById('searchInput').addEventListener('input',debounce(e=>{S.q=e.target.value.trim();renderGrid();},300));
-    document.getElementById('searchInput').addEventListener('focus',()=>{if(window.innerWidth<=768){document.getElementById('searchInput').classList.add('expanded');document.getElementById('searchOverlay').classList.add('show');}});
-    document.getElementById('searchInput').addEventListener('blur',()=>{setTimeout(()=>{document.getElementById('searchInput').classList.remove('expanded');document.getElementById('searchOverlay').classList.remove('show');},200);});
-    document.getElementById('searchOverlay').addEventListener('click',()=>{document.getElementById('searchInput').blur();});
     document.getElementById('pricingTier').addEventListener('change',e=>changeTier(e.target.value));
     document.getElementById('btnToggleSidebar').addEventListener('click',()=>{document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebarOverlay').classList.toggle('show');});
     document.getElementById('sidebarOverlay').addEventListener('click',()=>{document.getElementById('sidebar').classList.remove('open');document.getElementById('sidebarOverlay').classList.remove('show');});
