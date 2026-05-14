@@ -436,7 +436,7 @@ function renderDrawer(){
         total+=sub;
         h+=`<div class="qi">
             <div>
-                <div class="qi-n">${p.series} ${p.name}</div>
+                <div class="qi-n">${p.series} · ${p.color} · ${p.name}</div>
                 <div class="qi-p">${fp(price)} × <input type="tel" inputmode="numeric" pattern="[0-9]*" value="${qty}" onfocus="this.select()" onchange="setQty(${id},this.value)"></div>
             </div>
             <div class="qi-q">
