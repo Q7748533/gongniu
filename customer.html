@@ -8,7 +8,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --brand-green: #00A651; --brand-dark: #008c44; --brand-light: #e6f7ef; }
+        :root { --brand-green: #00A651; --brand-dark: #008c44; --brand-light: #e6f7ef; --sidebar-w: 220px; }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif; background: #f8faf9; min-height: 100vh; }
         ::-webkit-scrollbar { width: 4px; }
@@ -24,50 +24,88 @@
         .cart-btn { position: relative; padding: 8px 16px; border-radius: 8px; background: var(--brand-green); color: white; border: none; cursor: pointer; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
         .cart-badge { position: absolute; top: -6px; right: -6px; background: #ef4444; color: white; font-size: 10px; font-weight: 700; min-width: 18px; height: 18px; border-radius: 9px; display: flex; align-items: center; justify-content: center; padding: 0 4px; }
         .cart-badge.h { display: none; }
+        .mobile-menu-btn { display: none; width: 36px; height: 36px; border-radius: 6px; border: 1px solid #e5e7eb; background: white; cursor: pointer; font-size: 16px; align-items: center; justify-content: center; }
 
-        .main { padding-top: 56px; min-height: 100vh; }
+        .layout { display: flex; min-height: calc(100vh - 56px); padding-top: 56px; }
 
-        .filter-bar { background: white; border-bottom: 1px solid #e5e7eb; padding: 12px 16px; display: flex; gap: 8px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-        .filter-bar::-webkit-scrollbar { height: 0; }
-        .f-chip { padding: 6px 14px; border-radius: 20px; font-size: 13px; cursor: pointer; border: 1px solid #e5e7eb; background: white; color: #6b7280; white-space: nowrap; transition: all 0.15s; }
-        .f-chip:hover { border-color: var(--brand-green); color: var(--brand-green); }
-        .f-chip.on { background: var(--brand-green); color: white; border-color: var(--brand-green); }
+        .sidebar { width: var(--sidebar-w); background: white; border-right: 1px solid #e5e7eb; display: flex; flex-direction: column; flex-shrink: 0; height: calc(100vh - 56px); position: sticky; top: 56px; }
+        .sidebar-head { padding: 10px 12px; border-bottom: 1px solid #f3f4f6; display: flex; justify-content: space-between; align-items: center; }
+        .sidebar-head span { font-size: 12px; font-weight: 600; color: #374151; }
+        .sidebar-body { flex: 1; overflow-y: auto; padding: 6px; }
 
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; padding: 20px; max-width: 1200px; margin: 0 auto; }
-        .card { background: white; border-radius: 12px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); transition: all 0.2s; cursor: pointer; border: 2px solid transparent; }
-        .card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .series-row { margin-bottom: 2px; }
+        .series-btn { width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; color: #374151; background: none; border: none; transition: background 0.15s; }
+        .series-btn:hover { background: #f9fafb; }
+        .series-btn.open { background: var(--brand-light); color: var(--brand-green); }
+        .series-btn .arrow { font-size: 10px; transition: transform 0.2s; }
+        .series-btn.open .arrow { transform: rotate(90deg); }
+        .series-btn .cnt { font-size: 11px; color: #9ca3af; background: #f3f4f6; padding: 1px 6px; border-radius: 8px; font-weight: 400; }
+        .series-btn.open .cnt { background: white; color: var(--brand-green); }
+
+        .colors-panel { display: none; padding: 2px 0 2px 16px; }
+        .colors-panel.open { display: block; }
+        .color-btn { width: 100%; display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 5px; cursor: pointer; font-size: 12px; color: #6b7280; background: none; border: none; transition: all 0.15s; }
+        .color-btn:hover { background: #f9fafb; color: #374151; }
+        .color-btn.open { background: var(--brand-green); color: white; }
+        .color-dot { width: 10px; height: 10px; border-radius: 50%; border: 1px solid #e5e7eb; flex-shrink: 0; }
+        .color-btn.open .color-dot { border-color: rgba(255,255,255,0.5); }
+        .color-btn .cnt { margin-left: auto; font-size: 11px; opacity: 0.6; }
+
+        .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .main-head { padding: 8px 16px; background: white; border-bottom: 1px solid #e5e7eb; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+        .path { font-size: 12px; color: #9ca3af; display: flex; align-items: center; gap: 4px; }
+        .path b { color: #374151; font-weight: 600; }
+        .path a { color: #6b7280; cursor: pointer; }
+        .path a:hover { color: var(--brand-green); }
+        .cnt-label { font-size: 11px; color: #9ca3af; }
+
+        .mobile-filter-bar { display: none; padding: 6px 12px; background: white; border-bottom: 1px solid #e5e7eb; overflow-x: auto; white-space: nowrap; -webkit-overflow-scrolling: touch; }
+        .mobile-filter-bar.show { display: flex; gap: 6px; }
+        .mobile-filter-bar::-webkit-scrollbar { display: none; }
+        .mfc { padding: 5px 12px; border-radius: 16px; font-size: 12px; cursor: pointer; border: 1px solid #e5e7eb; background: white; color: #374151; flex-shrink: 0; user-select: none; }
+        .mfc.active { background: var(--brand-green); color: white; border-color: var(--brand-green); }
+        .mfc .mfc-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 4px; vertical-align: middle; border: 1px solid #d1d5db; }
+        .mfc.active .mfc-dot { border-color: rgba(255,255,255,0.5); }
+
+        .grid { flex: 1; overflow-y: auto; padding: 14px; display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; align-content: start; }
+
+        .card { background: white; border-radius: 10px; padding: 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); transition: all 0.2s; cursor: pointer; border: 2px solid transparent; }
+        .card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); transform: translateY(-1px); }
         .card.in { border-color: var(--brand-green); }
-        .card-name { font-size: 15px; font-weight: 600; color: #1f2937; margin-bottom: 4px; }
-        .card-meta { font-size: 12px; color: #9ca3af; margin-bottom: 12px; }
-        .card-price { font-size: 20px; font-weight: 700; color: var(--brand-green); }
-        .card-price span { font-size: 13px; font-weight: 400; }
-        .card-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; }
-        .add-btn { width: 32px; height: 32px; border-radius: 50%; background: var(--brand-green); color: white; border: none; cursor: pointer; font-size: 16px; font-weight: 700; display: flex; align-items: center; justify-content: center; transition: transform 0.15s; }
+        .card-name { font-size: 14px; font-weight: 600; color: #1f2937; margin-bottom: 4px; }
+        .card-meta { font-size: 11px; color: #9ca3af; margin-bottom: 10px; }
+        .card-price { font-size: 18px; font-weight: 700; color: var(--brand-green); }
+        .card-price span { font-size: 12px; font-weight: 400; }
+        .card-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
+        .add-btn { width: 30px; height: 30px; border-radius: 50%; background: var(--brand-green); color: white; border: none; cursor: pointer; font-size: 15px; font-weight: 700; display: flex; align-items: center; justify-content: center; transition: transform 0.15s; }
         .add-btn:hover { transform: scale(1.1); }
         .add-btn.pop { animation: popIn 0.3s ease; }
         @keyframes popIn { 0%{transform:scale(1);} 50%{transform:scale(1.3);} 100%{transform:scale(1);} }
-        .qty-ctrl { display: flex; align-items: center; gap: 8px; }
-        .qty-b { width: 28px; height: 28px; border-radius: 6px; border: 1px solid #e5e7eb; background: white; cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; }
+        .qty-ctrl { display: flex; align-items: center; gap: 6px; }
+        .qty-b { width: 26px; height: 26px; border-radius: 6px; border: 1px solid #e5e7eb; background: white; cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: center; }
         .qty-b:active { background: #f3f4f6; }
-        .qty-v { font-size: 14px; font-weight: 600; min-width: 24px; text-align: center; }
-        .card-badge { font-size: 11px; color: var(--brand-green); background: var(--brand-light); padding: 2px 8px; border-radius: 10px; }
+        .qty-v { font-size: 13px; font-weight: 600; min-width: 20px; text-align: center; }
+        .card-badge { font-size: 10px; color: var(--brand-green); background: var(--brand-light); padding: 2px 8px; border-radius: 10px; }
 
         .empty { grid-column: 1/-1; text-align: center; padding: 60px 20px; color: #9ca3af; }
         .empty i { font-size: 48px; margin-bottom: 12px; display: block; color: #d1d5db; }
         .empty p { font-size: 15px; }
 
-        .skeleton { grid-column: 1/-1; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; padding: 20px; max-width: 1200px; margin: 0 auto; }
-        .sk-card { background: white; border-radius: 12px; padding: 16px; height: 140px; }
-        .sk-line { height: 14px; border-radius: 6px; background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; margin-bottom: 10px; }
+        .skeleton { grid-column: 1/-1; display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; padding: 14px; }
+        .sk-card { background: white; border-radius: 10px; padding: 14px; height: 130px; }
+        .sk-line { height: 12px; border-radius: 6px; background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; margin-bottom: 8px; }
         .sk-line.w60 { width: 60%; }
         .sk-line.w40 { width: 40%; }
         .sk-line.w80 { width: 80%; }
-        .sk-line.h24 { height: 24px; }
+        .sk-line.h22 { height: 22px; }
         @keyframes shimmer { 0%{background-position:200% 0;} 100%{background-position:-200% 0;} }
 
-        .drawer-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 199; display: none; }
+        .sidebar-overlay { display: none; position: fixed; inset: 0; top: 56px; background: rgba(0,0,0,0.4); z-index: 89; }
+        .sidebar-overlay.show { display: block; }
+
+        .drawer-overlay { position: fixed; inset: 0; top: 56px; background: rgba(0,0,0,0.4); z-index: 199; display: none; }
         .drawer-overlay.show { display: block; }
-        .drawer { position: fixed; right: 0; top: 0; bottom: 0; width: 380px; background: white; box-shadow: -4px 0 16px rgba(0,0,0,0.1); display: flex; flex-direction: column; z-index: 200; transform: translateX(100%); transition: transform 0.3s; }
+        .drawer { position: fixed; right: 0; top: 56px; bottom: 0; width: 380px; background: white; box-shadow: -4px 0 16px rgba(0,0,0,0.1); display: flex; flex-direction: column; z-index: 200; transform: translateX(100%); transition: transform 0.3s; }
         .drawer.open { transform: translateX(0); }
         .d-head { padding: 16px; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; }
         .d-head h3 { font-size: 16px; font-weight: 600; }
@@ -104,13 +142,12 @@
         #exportArea { position: absolute; left: -9999px; top: 0; width: 600px; background: white; padding: 24px; }
 
         @media (max-width: 768px) {
-            .grid { grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 10px; }
-            .card { padding: 12px; }
-            .card-name { font-size: 13px; }
-            .card-price { font-size: 16px; }
-            .drawer { width: 100%; }
-            .search-wrap { max-width: none; }
+            .sidebar { position: fixed; left: 0; top: 56px; z-index: 90; transform: translateX(-100%); transition: transform 0.3s; height: calc(100vh - 56px); }
+            .sidebar.open { transform: translateX(0); }
+            .mobile-menu-btn { display: flex !important; }
+            .mobile-filter-bar.show { display: flex; }
             .logo span { display: none; }
+            .search-wrap { max-width: none; }
         }
         @media (max-width: 480px) {
             .grid { grid-template-columns: repeat(2, 1fr); gap: 8px; padding: 8px; }
@@ -118,15 +155,20 @@
             .card-name { font-size: 12px; }
             .card-meta { font-size: 10px; margin-bottom: 8px; }
             .card-price { font-size: 14px; }
-            .add-btn { width: 26px; height: 26px; font-size: 14px; }
+            .add-btn { width: 24px; height: 24px; font-size: 13px; }
             .top-bar { height: 48px; }
-            .main { padding-top: 48px; }
+            .layout { padding-top: 48px; }
+            .sidebar { top: 48px; height: calc(100vh - 48px); }
+            .drawer { top: 48px; width: 100%; }
+            .drawer-overlay { top: 48px; }
+            .offline-banner { top: 48px; }
         }
     </style>
 </head>
 <body>
 
 <nav class="top-bar">
+    <button class="mobile-menu-btn" id="mobileMenuBtn"><i class="fas fa-bars"></i></button>
     <div class="logo"><i class="fas fa-bolt"></i><span>公牛开关插座</span></div>
     <div class="search-wrap">
         <i class="fas fa-search search-icon"></i>
@@ -138,16 +180,31 @@
     </button>
 </nav>
 
-<div class="main">
-    <div class="filter-bar" id="filterBar"></div>
-    <div class="grid" id="productGrid">
-        <div class="skeleton" id="skeletonGrid">
-            <div class="sk-card"><div class="sk-line w60 h24"></div><div class="sk-line w80"></div><div class="sk-line w40"></div></div>
-            <div class="sk-card"><div class="sk-line w60 h24"></div><div class="sk-line w80"></div><div class="sk-line w40"></div></div>
-            <div class="sk-card"><div class="sk-line w60 h24"></div><div class="sk-line w80"></div><div class="sk-line w40"></div></div>
-            <div class="sk-card"><div class="sk-line w60 h24"></div><div class="sk-line w80"></div><div class="sk-line w40"></div></div>
-            <div class="sk-card"><div class="sk-line w60 h24"></div><div class="sk-line w80"></div><div class="sk-line w40"></div></div>
-            <div class="sk-card"><div class="sk-line w60 h24"></div><div class="sk-line w80"></div><div class="sk-line w40"></div></div>
+<div class="layout">
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-head">
+            <span>产品系列</span>
+        </div>
+        <div class="sidebar-body" id="sidebarList">
+            <div style="padding:20px;text-align:center;color:#9ca3af;"><i class="fas fa-spinner fa-spin" style="font-size:18px;"></i><p style="font-size:11px;margin-top:6px;">加载中...</p></div>
+        </div>
+    </aside>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <div class="main">
+        <div class="main-head">
+            <div class="path" id="breadcrumb"><b>全部产品</b></div>
+            <div class="cnt-label" id="productCount"></div>
+        </div>
+        <div class="mobile-filter-bar" id="mobileFilterBar"></div>
+        <div class="grid" id="productGrid">
+            <div class="skeleton" id="skeletonGrid">
+                <div class="sk-card"><div class="sk-line w60 h22"></div><div class="sk-line w80"></div><div class="sk-line w40"></div></div>
+                <div class="sk-card"><div class="sk-line w60 h22"></div><div class="sk-line w80"></div><div class="sk-line w40"></div></div>
+                <div class="sk-card"><div class="sk-line w60 h22"></div><div class="sk-line w80"></div><div class="sk-line w40"></div></div>
+                <div class="sk-card"><div class="sk-line w60 h22"></div><div class="sk-line w80"></div><div class="sk-line w40"></div></div>
+                <div class="sk-card"><div class="sk-line w60 h22"></div><div class="sk-line w80"></div><div class="sk-line w40"></div></div>
+                <div class="sk-card"><div class="sk-line w60 h22"></div><div class="sk-line w80"></div><div class="sk-line w40"></div></div>
+            </div>
         </div>
     </div>
 </div>
@@ -182,6 +239,7 @@
             <tr style="background:#00A651;color:white;">
                 <th style="padding:10px;border:1px solid #e5e7eb;">序号</th>
                 <th style="padding:10px;border:1px solid #e5e7eb;">系列</th>
+                <th style="padding:10px;border:1px solid #e5e7eb;">颜色</th>
                 <th style="padding:10px;border:1px solid #e5e7eb;">型号</th>
                 <th style="padding:10px;border:1px solid #e5e7eb;">数量</th>
                 <th style="padding:10px;border:1px solid #e5e7eb;">单价</th>
@@ -196,13 +254,14 @@
 <script>
 const SUPABASE_URL='https://ihekcwhmsbuetvgucyrv.supabase.co';
 const SUPABASE_KEY='sb_publishable_A9tCXTu6-MPrcuJFZiuPRA_l-PY4UsJ';
-const CK='bull_customer_v1';
+const CK='bull_customer_v2';
 const CA=5*60*1000;
 
 const CM={data:null,ts:null,load(){try{const c=localStorage.getItem(CK);if(c){const p=JSON.parse(c);if(Date.now()-p.ts<CA){this.data=p.data;this.ts=p.ts;return true;}}}catch(e){}return false;},save(){try{localStorage.setItem(CK,JSON.stringify({data:this.data,ts:Date.now()}));this.ts=Date.now();}catch(e){}},get(){return this.data||[];},clear(){this.data=null;this.ts=null;localStorage.removeItem(CK);},st(s){const ob=document.getElementById('offlineBanner');if(ob)ob.classList.toggle('show',s==='offline');}};
 
-const S={all:[],qi:{},series:null,color:null,q:''};
+const S={all:[],qi:{},series:null,color:null,q:'',exp:null};
 const db=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+const cMap={'白色':'#ffffff','黑色':'#1f2937','金色':'#fbbf24','香槟金':'#fde68a','银色':'#9ca3af','灰色':'#6b7280','远山灰':'#78716c'};
 
 function toast(m,t='info',d=2000){const c=document.getElementById('toastC');const e=document.createElement('div');e.className='toast toast-'+(t==='success'?'ok':t==='error'?'err':'info');const ic={success:'fa-check-circle',error:'fa-times-circle',info:'fa-info-circle'};e.innerHTML=`<i class="fas ${ic[t]}"></i><span>${m}</span>`;c.appendChild(e);setTimeout(()=>{e.style.opacity='0';e.style.transform='translateX(100%)';setTimeout(()=>e.remove(),300);},d);}
 function fp(p){return `¥${parseFloat(p||0).toFixed(2)}`;}
@@ -211,20 +270,73 @@ function fd(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth(
 
 function getPrice(p){return parseFloat(p.price);}
 
-function renderFilters(){
-    const bar=document.getElementById('filterBar');
+function renderSB(){
+    const ct=document.getElementById('sidebarList');
     const series=[...new Set(S.all.map(p=>p.series))];
-    let html=`<div class="f-chip ${!S.series?'on':''}" data-s="">全部</div>`;
-    series.forEach(s=>{html+=`<div class="f-chip ${S.series===s?'on':''}" data-s="${s}">${s}</div>`;});
-    bar.innerHTML=html;
-    bar.querySelectorAll('.f-chip').forEach(chip=>{
-        chip.addEventListener('click',()=>{
-            S.series=chip.dataset.s||null;
-            S.color=null;
-            renderFilters();
-            renderGrid();
+    let h='';
+    series.forEach(sn=>{
+        const sp=S.all.filter(p=>p.series===sn);
+        const colors=[...new Set(sp.map(p=>p.color))];
+        const isOpen=S.exp===sn;
+        h+=`<div class="series-row"><button class="series-btn ${isOpen?'open':''}" data-s="${sn}"><span>${sn}</span><span class="cnt">${sp.length}</span><i class="fas fa-chevron-right arrow"></i></button>`;
+        if(isOpen){
+            h+=`<div class="colors-panel open">`;
+            colors.forEach(c=>{
+                const cc=S.all.filter(p=>p.series===sn&&p.color===c).length;
+                const dot=cMap[c]||'#d1d5db';
+                const isSel=S.series===sn&&S.color===c;
+                h+=`<button class="color-btn ${isSel?'open':''}" data-s="${sn}" data-c="${c}"><span class="color-dot" style="background:${dot};"></span>${c}<span class="cnt">${cc}</span></button>`;
+            });
+            h+=`</div>`;
+        }
+        h+=`</div>`;
+    });
+    ct.innerHTML=h;
+    ct.querySelectorAll('.series-btn').forEach(btn=>{
+        btn.addEventListener('click',()=>{
+            const s=btn.dataset.s;
+            S.exp=S.exp===s?null:s;
+            S.series=null;S.color=null;
+            renderSB();renderMFB();renderGrid();updPath();
         });
     });
+    ct.querySelectorAll('.color-btn').forEach(btn=>{
+        btn.addEventListener('click',()=>{
+            S.series=btn.dataset.s;
+            S.color=btn.dataset.c;
+            renderSB();renderMFB();renderGrid();updPath();
+        });
+    });
+}
+
+function renderMFB(){
+    const bar=document.getElementById('mobileFilterBar');
+    if(!S.exp){bar.classList.remove('show');bar.innerHTML='';return;}
+    bar.classList.add('show');
+    const sp=S.all.filter(p=>p.series===S.exp);
+    const colors=[...new Set(sp.map(p=>p.color))];
+    let h=`<div class="mfc ${!S.color?'active':''}" data-c="">全部</div>`;
+    colors.forEach(c=>{
+        const dot=cMap[c]||'#d1d5db';
+        h+=`<div class="mfc ${S.color===c?'active':''}" data-c="${c}"><span class="mfc-dot" style="background:${dot};"></span>${c}</div>`;
+    });
+    bar.innerHTML=h;
+    bar.querySelectorAll('.mfc').forEach(chip=>{
+        chip.addEventListener('click',()=>{
+            const c=chip.dataset.c;
+            S.color=c||null;
+            renderSB();renderMFB();renderGrid();updPath();
+        });
+    });
+}
+
+function updPath(){
+    const bc=document.getElementById('breadcrumb');
+    if(S.series&&S.color){bc.innerHTML=`<a id="pAll">全部</a> / <a id="pS">${S.series}</a> / <b>${S.color}</b>`;}
+    else if(S.series){bc.innerHTML=`<a id="pAll">全部</a> / <b>${S.series}</b>`;}
+    else{bc.innerHTML=`<b>全部产品</b>`;}
+    const pa=document.getElementById('pAll');if(pa)pa.addEventListener('click',()=>{S.exp=null;S.series=null;S.color=null;renderSB();renderMFB();renderGrid();updPath();});
+    const ps=document.getElementById('pS');if(ps)ps.addEventListener('click',()=>{S.color=null;renderSB();renderMFB();renderGrid();updPath();});
 }
 
 function renderGrid(){
@@ -233,9 +345,11 @@ function renderGrid(){
     if(sk)sk.style.display='none';
 
     let ps=S.all;
-    if(S.series)ps=ps.filter(p=>p.series===S.series);
-    if(S.color)ps=ps.filter(p=>p.color===S.color);
+    if(S.series&&S.color)ps=ps.filter(p=>p.series===S.series&&p.color===S.color);
+    else if(S.series)ps=ps.filter(p=>p.series===S.series);
     if(S.q){const q=S.q.toLowerCase();ps=ps.filter(p=>p.name.toLowerCase().includes(q)||p.series.toLowerCase().includes(q)||p.color.toLowerCase().includes(q));}
+
+    document.getElementById('productCount').textContent=ps.length>0?`共${ps.length}个产品`:'';
 
     if(ps.length===0){g.innerHTML=`<div class="empty"><i class="fas fa-box-open"></i><p>${S.q?'没有找到匹配的产品':'暂无产品'}</p></div>`;return;}
 
@@ -260,8 +374,6 @@ function addQ(id){
     updBadge();
     renderDrawer();
     toast('已添加','success');
-    const btn=document.querySelector(`.add-btn[onclick="addQ(${id})"]`);
-    if(btn){btn.classList.add('pop');setTimeout(()=>btn.classList.remove('pop'),300);}
     if(navigator.vibrate)navigator.vibrate(30);
 }
 
@@ -357,6 +469,7 @@ async function exportImage(){
         html+=`<tr>
             <td style="padding:8px;border:1px solid #e5e7eb;text-align:center;">${idx++}</td>
             <td style="padding:8px;border:1px solid #e5e7eb;">${p.series}</td>
+            <td style="padding:8px;border:1px solid #e5e7eb;">${p.color}</td>
             <td style="padding:8px;border:1px solid #e5e7eb;">${p.name}</td>
             <td style="padding:8px;border:1px solid #e5e7eb;text-align:center;">${qty}</td>
             <td style="padding:8px;border:1px solid #e5e7eb;text-align:right;">${fp(price)}</td>
@@ -364,7 +477,7 @@ async function exportImage(){
         </tr>`;
     });
     tb.innerHTML=html;
-    document.getElementById('outFoot').innerHTML=`<tr><td colspan="5" style="padding:12px;border:1px solid #e5e7eb;text-align:right;font-weight:bold;">合计：</td><td style="padding:12px;border:1px solid #e5e7eb;text-align:right;font-weight:bold;color:#00A651;">${fp(total)}</td></tr>`;
+    document.getElementById('outFoot').innerHTML=`<tr><td colspan="6" style="padding:12px;border:1px solid #e5e7eb;text-align:right;font-weight:bold;">合计：</td><td style="padding:12px;border:1px solid #e5e7eb;text-align:right;font-weight:bold;color:#00A651;">${fp(total)}</td></tr>`;
 
     try{
         const ea=document.getElementById('exportArea');
@@ -380,8 +493,7 @@ async function exportImage(){
 async function loadProd(){
     if(CM.load()){
         S.all=CM.get();
-        renderFilters();
-        renderGrid();
+        renderSB();renderMFB();renderGrid();
         CM.st('synced');
         refreshBG();
         return;
@@ -396,8 +508,7 @@ async function loadDB(){
         S.all=data||[];
         CM.data=S.all;
         CM.save();
-        renderFilters();
-        renderGrid();
+        renderSB();renderMFB();renderGrid();
         CM.st('synced');
     }catch(e){
         console.error('加载失败:',e);
@@ -414,8 +525,7 @@ async function refreshBG(){
             CM.data=data||[];
             CM.save();
             S.all=CM.get();
-            renderFilters();
-            renderGrid();
+            renderSB();renderMFB();renderGrid();
             toast('数据已更新','success',1500);
         }
     }catch(e){console.error('后台刷新失败:',e);}
@@ -428,6 +538,8 @@ function bindEvents(){
     document.getElementById('drawerOverlay').addEventListener('click',()=>{document.getElementById('drawer').classList.remove('open');document.getElementById('drawerOverlay').classList.remove('show');});
     document.getElementById('btnExport').addEventListener('click',exportImage);
     document.getElementById('btnClear').addEventListener('click',clearQ);
+    document.getElementById('mobileMenuBtn').addEventListener('click',()=>{document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebarOverlay').classList.toggle('show');});
+    document.getElementById('sidebarOverlay').addEventListener('click',()=>{document.getElementById('sidebar').classList.remove('open');document.getElementById('sidebarOverlay').classList.remove('show');});
 }
 
 document.addEventListener('DOMContentLoaded',()=>{bindEvents();loadProd();});
