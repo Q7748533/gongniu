@@ -154,10 +154,6 @@
         .d-btn.s { background: #f3f4f6; color: #374151; }
         .d-btn.p { background: var(--brand-green); color: white; }
 
-        .ai-box { border-top: 1px solid #e5e7eb; padding: 8px 16px; background: #f8fafc; }
-        .ai-box textarea { width: 100%; padding: 6px 8px; border: 1px solid #e5e7eb; border-radius: 5px; font-size: 11px; resize: none; outline: none; }
-        .ai-box textarea:focus { border-color: var(--brand-green); }
-
         .fab { position: fixed; bottom: 16px; right: 16px; padding: 8px 16px; border-radius: 16px; background: var(--brand-green); color: white; border: none; cursor: pointer; font-size: 12px; font-weight: 600; box-shadow: 0 4px 12px rgba(0,166,81,0.4); z-index: 80; display: flex; align-items: center; gap: 4px; }
         .fab:hover { transform: scale(1.05); }
         .fab-c { background: rgba(255,255,255,0.3); padding: 1px 6px; border-radius: 6px; font-size: 10px; }
@@ -303,11 +299,6 @@
         <div id="couponInfo" style="display:none;font-size:10px;color:#f97316;margin-bottom:6px;"></div>
         <select id="pricingTier" class="d-tier"><option value="A">方案A 标准价</option><option value="B">方案B 合作价</option><option value="C">方案C 大客价</option></select>
         <div id="quoteList"><div class="empty"><i class="fas fa-cart-plus"></i><p>报价单是空的</p></div></div>
-    </div>
-    <div class="ai-box">
-        <textarea id="aiInput" rows="2" placeholder="例如：客厅5个一开双控，主卧3个五孔..."></textarea>
-        <div id="aiLoading" style="display:none;text-align:center;padding:4px;"><i class="fas fa-spinner fa-spin" style="color:#6366f1;font-size:10px;"></i><span style="font-size:10px;color:#6b7280;margin-left:4px;">AI思考中...</span></div>
-        <button class="w-full mt-2 px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg text-sm font-medium" style="width:100%;margin-top:6px;padding:6px;background:linear-gradient(90deg,#6366f1,#9333ea);color:white;border:none;border-radius:5px;font-size:11px;cursor:pointer;" id="aiBtn"><i class="fas fa-magic"></i> AI智能配单</button>
     </div>
     <div class="d-foot">
         <div class="d-sum">
@@ -634,12 +625,6 @@ async function loadCoupons(){try{const{data,error}=await db.from('coupons').sele
 
 async function generateCoupon(){const dv=document.getElementById('couponDiscount').value;const v=vNum(dv,{fn:'折扣',min:1,max:99});if(!v.v){toast(v.e,'warning');return;}const code=gcc();CM.st('syncing','生成中...');try{const{data,error}=await db.from('coupons').insert([{code,discount:v.val,used:false}]).select();if(error)throw new Error(`生成失败:${error.message}`);toast(`优惠券生成成功：${code}`,'success');loadCoupons();CM.st('synced','已同步');}catch(e){console.error('生成优惠券失败:',e);toast(e.message,'error');CM.st('offline','同步失败');}}
 
-async function processAIQuote(){const input=document.getElementById('aiInput').value.trim();if(!input){toast('请输入需求描述','warning');return;}document.getElementById('aiLoading').style.display='block';document.getElementById('aiBtn').disabled=true;try{const{data,error}=await db.from('ai_quotes').insert([{input_text:input,status:'pending'}]).select();if(error)throw new Error(`AI请求失败:${error.message}`);const quoteId=data[0].id;await pollAIResult(quoteId);}catch(e){toast(e.message,'error');}finally{document.getElementById('aiLoading').style.display='none';document.getElementById('aiBtn').disabled=false;}}
-
-async function pollAIResult(quoteId){for(let i=0;i<30;i++){await new Promise(r=>setTimeout(r,2000));const{data,error}=await db.from('ai_quotes').select('*').eq('id',quoteId).single();if(error)continue;if(data.status==='completed'&&data.result){applyAIResult(data.result);return;}if(data.status==='failed'){toast('AI处理失败','error');return;}}toast('AI处理超时，请稍后重试','warning');}
-
-function applyAIResult(result){try{const matches=JSON.parse(result);let count=0;matches.forEach(m=>{const p=S.all.find(pp=>pp.name.includes(m.keyword)||pp.series.includes(m.keyword));if(p){S.qi[p.id]=(S.qi[p.id]||0)+m.qty;count++;}});if(count>0){renderGrid();renderQL();updFC();toast(`AI已匹配${count}个产品`,'success');}else{toast('AI未找到匹配的产品','warning');}}catch(e){toast('AI结果解析失败','error');}}
-
 async function exportImage(){const ids=Object.keys(S.qi);if(ids.length===0){toast('报价单为空','warning');return;}document.getElementById('outClientName').textContent=document.getElementById('clientName').value||'未填写';document.getElementById('outClientPhone').textContent=document.getElementById('clientPhone').value||'未填写';document.getElementById('outDate').textContent=fd();document.getElementById('outSubtitle').textContent=`报价日期：${fd()}`;const tb=document.getElementById('outTableBody');let total=0;let html='';let idx=1;ids.forEach(id=>{const p=S.all.find(pp=>pp.id==id);if(!p)return;const qty=S.qi[id];const price=gcp(p);const sub=price*qty;total+=sub;html+=`<tr><td style="padding:8px;border:1px solid #000;text-align:center;">${idx++}</td><td style="padding:8px;border:1px solid #000;">${p.series}</td><td style="padding:8px;border:1px solid #000;">${p.color}</td><td style="padding:8px;border:1px solid #000;">${p.name}</td><td style="padding:8px;border:1px solid #000;text-align:center;">${qty}</td><td style="padding:8px;border:1px solid #000;text-align:right;">${fp(price)}</td><td style="padding:8px;border:1px solid #000;text-align:right;">${fp(sub)}</td></tr>`;});tb.innerHTML=html;let finalTotal=total*(S.gd/100);if(S.coupon)finalTotal=finalTotal*(S.coupon.discount/100);document.getElementById('outTableFoot').innerHTML=`<tr><td colspan="6" style="padding:12px;border:1px solid #000;text-align:right;font-weight:bold;">合计：</td><td style="padding:12px;border:1px solid #000;text-align:right;font-weight:bold;color:#ef4444;">${fp(finalTotal)}</td></tr>`;const ea=document.getElementById('exportArea');try{const canvas=await html2canvas(ea,{scale:2,useCORS:true});const link=document.createElement('a');link.download=`公牛报价单_${fd()}.png`;link.href=canvas.toDataURL('image/png');link.click();toast('图片导出成功！','success');}catch(e){toast('图片导出失败:'+e.message,'error');}}
 
 async function exportExcelFile(){const ids=Object.keys(S.qi);if(ids.length===0){toast('报价单为空','warning');return;}try{const wb=new ExcelJS.Workbook();const ws=wb.addWorksheet('报价单');ws.columns=[{header:'序号',key:'idx',width:8},{header:'系列',key:'series',width:15},{header:'颜色',key:'color',width:12},{header:'名称',key:'name',width:25},{header:'数量',key:'qty',width:10},{header:'单价',key:'price',width:12},{header:'小计',key:'sub',width:12}];ws.getRow(1).font={bold:true,color:{argb:'FFFFFFFF'}};ws.getRow(1).fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF006400'}};let total=0;let idx=1;ids.forEach(id=>{const p=S.all.find(pp=>pp.id==id);if(!p)return;const qty=S.qi[id];const price=gcp(p);const sub=price*qty;total+=sub;ws.addRow({idx:idx++,series:p.series,color:p.color,name:p.name,qty,price:fp(price),sub:fp(sub)});});let finalTotal=total*(S.gd/100);if(S.coupon)finalTotal=finalTotal*(S.coupon.discount/100);ws.addRow({});ws.addRow({idx:'',series:'',color:'',name:'合计',qty:'',price:'',sub:fp(finalTotal)});const buffer=await wb.xlsx.writeBuffer();const blob=new Blob([buffer],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});const link=document.createElement('a');link.href=URL.createObjectURL(blob);link.download=`公牛报价单_${fd()}.xlsx`;link.click();toast('Excel导出成功！','success');}catch(e){toast('Excel导出失败:'+e.message,'error');}}
@@ -662,7 +647,6 @@ function bindEvents(){
     document.getElementById('btnExportImage').addEventListener('click',exportImage);
     document.getElementById('btnExportExcel').addEventListener('click',exportExcelFile);
     document.getElementById('btnExportAnalysis').addEventListener('click',exportProductLibraryExcel);
-    document.getElementById('aiBtn').addEventListener('click',processAIQuote);
     document.getElementById('btnApplyCoupon').addEventListener('click',applyCoupon);
     document.getElementById('btnCloseDrawer').addEventListener('click',()=>{document.getElementById('quoteDrawer').classList.remove('open');});
     document.getElementById('fabQuote').addEventListener('click',()=>{document.getElementById('quoteDrawer').classList.toggle('open');});
